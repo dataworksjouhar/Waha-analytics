@@ -1,0 +1,5 @@
+gate_id,gate_name,description
+G01,Main Gate,Primary pedestrian entrance from car park
+G02,North Gate,Secondary entrance near Playground and Farm
+G03,Equestrian Gate,Dedicated entrance for equestrian centre
+G04,East Gate,Entrance near F&B tenant cluster

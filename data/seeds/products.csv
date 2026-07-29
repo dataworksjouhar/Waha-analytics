@@ -1,0 +1,17 @@
+product_id,product_code,product_name,venue_id,category,unit_price_kwd
+P01,playground_ticket_adult,Playground Ticket - Adult,V01,ticket,4.5
+P02,playground_ticket_child,Playground Ticket - Child,V01,ticket,3.0
+P03,playground_ticket_family,Playground Family Pack (2+2),V01,ticket,14.0
+P04,farm_ticket_adult,Farm Ticket - Adult,V02,ticket,3.5
+P05,farm_ticket_child,Farm Ticket - Child,V02,ticket,2.5
+P06,farm_kiosk_feed_cups,Animal Feed Cup,V02,retail,1.0
+P07,farm_kiosk_snacks,Farm Kiosk Snacks and Drinks,V02,retail,2.0
+P08,gym_daypass,Gym Day Pass,V03,pass,5.0
+P09,gym_membership_monthly,Gym Membership - Monthly,V03,membership,25.0
+P10,gym_membership_annual,Gym Membership - Annual,V03,membership,240.0
+P11,lesson_package_beginner_4,Riding Lesson Package - Beginner (4 sessions),V04,lesson_package,60.0
+P12,lesson_package_intermediate_4,Riding Lesson Package - Intermediate (4 sessions),V04,lesson_package,75.0
+P13,lesson_package_advanced_4,Riding Lesson Package - Advanced (4 sessions),V04,lesson_package,90.0
+P14,equestrian_club_membership,Equestrian Club Membership - Monthly,V04,membership,40.0
+P15,horse_boarding_monthly,Horse Boarding - Monthly Livery,V04,boarding,180.0
+P16,event_ticket,Event Ticket (bazaar / concert general admission),,ticket,5.0

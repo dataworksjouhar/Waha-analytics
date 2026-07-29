@@ -1,0 +1,9 @@
+horse_id,horse_name,breed,level_suitability,stable_id
+H01,Amber,Arabian,beginner,S01
+H02,Sultan,Arabian,beginner,S02
+H03,Layla,Andalusian,beginner_intermediate,S03
+H04,Rocket,Quarter Horse,intermediate,S04
+H05,Duna,Warmblood,intermediate,S05
+H06,Zephyr,Warmblood,advanced,S06
+H07,Bandit,Thoroughbred,advanced,S07
+H08,Cleo,Andalusian,all_levels,S08

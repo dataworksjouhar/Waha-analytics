@@ -1,0 +1,12 @@
+tenant_id,tenant_name,category,unit_no,unit_sqm,lease_start,lease_end,base_rent_kwd,turnover_rent_pct,turnover_threshold_kwd,status,effective_start_date,effective_end_date
+T01,Sahara Grill,F&B - Casual Dining,U-101,220,2023-08-01,,1800,8,12000,active,2023-08-01,
+T02,Bunn Coffee Co.,F&B - Cafe,U-105,95,2023-09-01,,950,10,6000,active,2023-09-01,
+T03,Wafi Sweets,F&B - Quick Service,U-108,60,2023-08-15,,700,10,5000,active,2023-08-15,
+T04,Al Reef Bakery,F&B - Bakery,U-112,75,2023-06-01,2025-03-31,650,9,4500,closed,2023-06-01,
+T05,Zahra Fashion,Retail - Fashion,U-201,150,2023-08-01,,1400,7,10000,active,2023-08-01,
+T06,Little Explorers Toys,Retail - Specialty,U-205,110,2023-09-15,,1000,8,7000,active,2023-09-15,
+T07,Home & Hearth,Retail - Home & Lifestyle,U-210,180,2023-08-01,,1600,7,11000,active,2023-08-01,
+T08,Desert Rose Perfumes,Retail - Beauty & Fragrance,U-215,90,2023-10-01,,1100,9,6500,active,2023-10-01,
+T09,Kuwait Sports Gear,Retail - Specialty,U-220,130,2023-08-01,,1200,8,8500,active,2023-08-01,2025-05-31
+T09,Kuwait Sports Gear,Retail - Fashion,U-220,130,2023-08-01,,1200,8,8500,active,2025-06-01,
+T10,TechFix Mobile Care,Services - Repair,U-118,45,2023-11-01,,550,6,4000,active,2023-11-01,

@@ -1,0 +1,5 @@
+instructor_id,instructor_name,specialty_level,hire_date,status
+I01,Fatima Al-Rashid,all_levels,2023-09-01,active
+I02,James Whitfield,beginner,2023-10-01,active
+I03,Noura Al-Sabah,advanced,2024-01-15,active
+I04,Yusuf Demir,intermediate,2024-03-01,active

@@ -1,0 +1,5 @@
+venue_id,venue_name,venue_type,opened_date,description
+V01,The Playground,family_entertainment,2023-08-01,Ticketed indoor-outdoor play attraction
+V02,The Farm,petting_zoo,2023-08-01,Ticketed petting zoo and activity area with retail kiosk
+V03,Pulse Gym,fitness,2023-09-01,Membership and day-pass gym
+V04,Al Waha Equestrian Centre,equestrian,2023-10-01,"Riding school, boarding and club memberships"

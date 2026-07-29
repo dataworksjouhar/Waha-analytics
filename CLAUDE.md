@@ -75,3 +75,28 @@ pandas 3.x is current here, not 2.x. Copy-on-write is the default; do not write 
 assignment or rely on removed 2.x methods.
 
 Terminal is PowerShell on Windows: use PowerShell syntax, not bash.
+
+## Business rules: seasonality (Kuwait, owner-provided)
+
+Peak season is mid-October through end of March. All lines of business perform
+strongly in this window. This is the defining pattern of the whole model.
+
+Curves differ by venue and must not share one seasonality factor:
+
+- Outdoor park (Playground, Farm, tenants, footfall): strong winter peak
+  (15 Oct to 31 Mar), sharp decline through April and May, deep trough June to
+  August when outdoor conditions are unviable, recovery from late September.
+- Equestrian lessons: operates year round because the arena is air conditioned.
+  Winter still preferred, but no summer collapse. Expect a moderate July and
+  August dip driven by families travelling abroad, not by weather.
+- Horse boarding: effectively flat year round. Horses stay stabled regardless
+  of season. This is the stable recurring revenue base.
+- Gym: mild seasonality only, indoor facility. Small January intake spike.
+
+Other calendar effects:
+- Ramadan shifts activity rather than reducing it: late evening and post-Iftar
+  peaks, different hourly curve, F&B pattern changes.
+- National Day and Liberation Day (25 and 26 February) fall inside peak season
+  and should produce a strong spike.
+- School holidays lift daytime family traffic at the Playground and Farm.
+- Kuwaiti weekend is Friday and Saturday.

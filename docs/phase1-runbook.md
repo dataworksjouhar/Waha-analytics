@@ -288,7 +288,7 @@ Then update the analytics-venture skill file with Phase 1 status, and move to Ph
 | Session | Topic | Done | Committed |
 |---|---|---|---|
 | 1 | Config, seeds, schema DDL | yes | yes |
-| 2 | Calendar and seasonality | | |
+| 2 | Calendar and seasonality | yes | yes |
 | 3 | Weather and footfall | | |
 | 4 | POS, bookings, web | | |
 | 5 | Tenants, contracts, lessons | | |

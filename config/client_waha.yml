@@ -267,6 +267,58 @@ seasonality:
       22: 0.20
       23: 0.16
 
+# Weather (Source 6, architecture doc section 3). Kuwait's annual temperature
+# curve as cyclic anchors, same interpolation approach as the seasonality
+# profiles above. Dust storms cluster in spring; rain is a winter-only,
+# low-probability event. generator/weather.py reads this section.
+weather:
+  temp_max_anchors:
+    - { date: "01-15", temp_c: 20 }
+    - { date: "04-01", temp_c: 33 }
+    - { date: "07-15", temp_c: 48 }
+    - { date: "10-01", temp_c: 38 }
+    - { date: "12-15", temp_c: 21 }
+  temp_min_anchors:
+    - { date: "01-15", temp_c: 10 }
+    - { date: "04-01", temp_c: 20 }
+    - { date: "07-15", temp_c: 30 }
+    - { date: "10-01", temp_c: 24 }
+    - { date: "12-15", temp_c: 11 }
+  daily_noise_c: 2.0                  # random +/- jitter added to the interpolated curve
+  dust_storm:
+    season: { start: "03-01", end: "05-31" }
+    probability_in_season: 0.12
+    probability_out_of_season: 0.01
+  rain:
+    season: { start: "11-01", end: "03-31" }
+    probability_in_season: 0.08
+    probability_out_of_season: 0.005
+    amount_mm_range: [0.5, 15.0]
+
+# Footfall (Source 2). Four gates, each a fixed share of daily volume
+# (Main Gate carries the most, Equestrian Gate the least). Daily total comes
+# from the park seasonality profile x weekend uplift x weather suppression
+# x event uplift, then split into hours by hourly_weights and across gates
+# by gate_shares, with noise layered at both the daily and gate level so the
+# series is not mechanically smooth. No imperfections here yet (session 6
+# adds the dead sensor, double-counter and inconsistent gate names).
+footfall:
+  gate_shares:
+    G01: 0.45
+    G02: 0.30
+    G03: 0.10
+    G04: 0.15
+  base_daily_visitors: 3000            # visitor count at seasonality index 1.0
+  weekend_uplift_factor: 1.6           # Fri/Sat multiplier on the daily total
+  weather_suppression:
+    extreme_heat_threshold_c: 45
+    extreme_heat_factor: 0.75
+    dust_storm_factor: 0.70
+  event_uplift:
+    factor_per_expected_attendance: 0.35   # share of expected_attendance added as uplift
+  noise_std_pct: 0.06                  # daily gaussian noise, as a % of that day's total
+  gate_noise_std_pct: 0.03             # additional per-gate noise on top of the fixed share
+
 # Jouhar's locked Phase 0 metric selection (architecture doc section 9).
 # The gold layer must be able to answer every one of these via plain SQL.
 metrics:

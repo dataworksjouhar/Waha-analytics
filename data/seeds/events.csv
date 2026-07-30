@@ -1,0 +1,19 @@
+event_id,event_name,event_type,start_date,end_date,expected_attendance
+EVT001,Summer Kids Camp Kickoff,kids,2024-07-06,2024-07-06,800
+EVT002,Autumn Bazaar 2024,bazaar,2024-10-18,2024-10-19,3500
+EVT003,Live at Al Waha - Autumn Concert,concert,2024-11-08,2024-11-08,2200
+EVT004,Winter Bazaar 2024,bazaar,2024-12-13,2024-12-14,4000
+EVT005,Winter Break Family Days 2024,kids,2024-12-26,2024-12-28,2500
+EVT006,National Day Celebration 2025,national_holiday,2025-02-25,2025-02-26,5000
+EVT007,Ramadan Night Market 2025,bazaar,2025-03-08,2025-03-15,3000
+EVT008,Spring Break Kids Week 2025,kids,2025-03-30,2025-04-03,1800
+EVT009,Summer Splash Kids Day 2025,kids,2025-07-11,2025-07-11,600
+EVT010,Autumn Bazaar 2025,bazaar,2025-10-17,2025-10-18,3800
+EVT011,Live at Al Waha - Autumn Concert 2025,concert,2025-11-07,2025-11-07,2500
+EVT012,Winter Bazaar 2025,bazaar,2025-12-12,2025-12-13,4200
+EVT013,Winter Break Family Days 2025,kids,2025-12-25,2025-12-27,2600
+EVT014,New Year Countdown 2025,concert,2025-12-31,2025-12-31,3000
+EVT015,National Day Celebration 2026,national_holiday,2026-02-25,2026-02-26,5200
+EVT016,Ramadan Night Market 2026,bazaar,2026-02-25,2026-03-05,3200
+EVT017,Spring Break Kids Week 2026,kids,2026-03-21,2026-03-26,2000
+EVT018,Summer Prep Bazaar 2026,bazaar,2026-06-19,2026-06-20,1500

@@ -75,6 +75,198 @@ branding:
   primary_color: "#0F4C81"
   logo: waha.svg
 
+# All calendar facts and seasonality curves live here, not in Python, so a
+# future client in a different market (different weekend, no Ramadan, a
+# different peak season) is a data change only. generator/calendars.py
+# reads this section and every other generator module depends on it.
+calendar:
+  # Ramadan dates shift ~11 days earlier each Gregorian year and depend on
+  # moon sighting. These are the commonly published fixed estimates for the
+  # two Ramadans that fall inside the generator's date range; precision to
+  # the day does not matter for a synthetic demo.
+  ramadan_periods:
+    - year: 2025
+      start: "2025-03-01"
+      end: "2025-03-29"
+    - year: 2026
+      start: "2026-02-18"
+      end: "2026-03-19"
+
+  # Explicit list, not a rule engine: Kuwait public holidays do not follow a
+  # formula worth encoding. Only years inside the generator's date range
+  # (Jul 2024 - Jul 2026) are listed.
+  public_holidays:
+    - date: "2025-01-01"
+      name: "New Year's Day"
+    - date: "2025-02-25"
+      name: "National Day"
+    - date: "2025-02-26"
+      name: "Liberation Day"
+    - date: "2025-03-30"
+      name: "Eid al-Fitr"
+    - date: "2025-03-31"
+      name: "Eid al-Fitr Holiday"
+    - date: "2025-06-06"
+      name: "Eid al-Adha"
+    - date: "2025-06-07"
+      name: "Eid al-Adha Holiday"
+    - date: "2026-01-01"
+      name: "New Year's Day"
+    - date: "2026-02-25"
+      name: "National Day"
+    - date: "2026-02-26"
+      name: "Liberation Day"
+    - date: "2026-03-20"
+      name: "Eid al-Fitr"
+    - date: "2026-03-21"
+      name: "Eid al-Fitr Holiday"
+
+  # Named windows that lift daytime family traffic at the Playground/Farm.
+  school_holidays:
+    - name: "Summer Break 2024"
+      start: "2024-07-01"
+      end: "2024-08-31"
+    - name: "Winter Break 2024-25"
+      start: "2024-12-22"
+      end: "2025-01-05"
+    - name: "Spring Break 2025"
+      start: "2025-03-30"
+      end: "2025-04-06"
+    - name: "Summer Break 2025"
+      start: "2025-06-15"
+      end: "2025-08-31"
+    - name: "Winter Break 2025-26"
+      start: "2025-12-21"
+      end: "2026-01-04"
+    - name: "Spring Break 2026"
+      start: "2026-03-20"
+      end: "2026-03-27"
+    - name: "Summer Break 2026 (partial, range ends 2026-07-01)"
+      start: "2026-06-15"
+      end: "2026-07-01"
+
+  # dim_date.season boundaries (recurring month-day windows, not tied to a
+  # specific year). winter_peak wraps the year end (Oct into Jan into Mar);
+  # anything not in winter_peak or summer_trough is "shoulder".
+  season_boundaries:
+    winter_peak: { start: "10-15", end: "03-31" }
+    summer_trough: { start: "06-01", end: "08-31" }
+
+# Seasonality curves, one profile per revenue pattern (never one shared
+# factor - CLAUDE.md is explicit that park, equestrian lessons, boarding and
+# gym behave differently). Each profile is a list of {date: "MM-DD", factor}
+# anchors; generator/calendars.py linearly interpolates between them,
+# wrapping around the year so December connects back to January. Changing
+# these numbers is how a future client gets a different seasonal shape.
+seasonality:
+  profiles:
+    park:
+      description: >
+        Outdoor: Playground, Farm, tenants, footfall. Strong winter peak
+        (15 Oct - 31 Mar), sharp decline through Apr-May, deep summer
+        trough Jun-Aug, recovery from mid-September.
+      anchors:
+        - { date: "01-01", factor: 1.35 }
+        - { date: "03-31", factor: 1.30 }
+        - { date: "04-15", factor: 0.85 }
+        - { date: "05-15", factor: 0.55 }
+        - { date: "06-01", factor: 0.35 }
+        - { date: "08-31", factor: 0.35 }
+        - { date: "09-15", factor: 0.55 }
+        - { date: "10-01", factor: 0.90 }
+        - { date: "10-15", factor: 1.35 }
+
+    equestrian_lessons:
+      description: >
+        Riding lessons, air-conditioned arena. Year-round, winter still
+        preferred, moderate Jul-Aug dip from family travel, no summer
+        collapse.
+      anchors:
+        - { date: "01-01", factor: 1.15 }
+        - { date: "03-31", factor: 1.15 }
+        - { date: "04-15", factor: 1.00 }
+        - { date: "06-15", factor: 0.85 }
+        - { date: "07-15", factor: 0.75 }
+        - { date: "08-15", factor: 0.80 }
+        - { date: "09-01", factor: 0.95 }
+        - { date: "10-15", factor: 1.15 }
+
+    equestrian_boarding:
+      description: >
+        Horse boarding/livery. Flat all year: horses stay stabled
+        regardless of season. This is the stable recurring revenue base.
+      anchors:
+        - { date: "01-01", factor: 1.00 }
+        - { date: "07-01", factor: 1.00 }
+
+    gym:
+      description: >
+        Indoor gym memberships. Mild seasonality only, small January
+        intake spike that fades by mid-February.
+      anchors:
+        - { date: "01-01", factor: 1.25 }
+        - { date: "01-20", factor: 1.15 }
+        - { date: "02-15", factor: 1.00 }
+        - { date: "06-01", factor: 0.95 }
+        - { date: "09-01", factor: 0.95 }
+        - { date: "10-01", factor: 1.00 }
+        - { date: "12-20", factor: 1.05 }
+
+  # Raw per-hour weights (0-23), normalized to sum to 1.0 in code. "normal"
+  # is evening-weighted; "ramadan" shifts the peak to post-Iftar, roughly
+  # 20:00 through past midnight. dim_date.is_ramadan picks which applies.
+  hourly_weights:
+    normal:
+      0: 0.0
+      1: 0.0
+      2: 0.0
+      3: 0.0
+      4: 0.0
+      5: 0.0
+      6: 0.0
+      7: 0.0
+      8: 0.01
+      9: 0.02
+      10: 0.03
+      11: 0.04
+      12: 0.05
+      13: 0.05
+      14: 0.05
+      15: 0.05
+      16: 0.06
+      17: 0.09
+      18: 0.12
+      19: 0.14
+      20: 0.13
+      21: 0.10
+      22: 0.05
+      23: 0.02
+    ramadan:
+      0: 0.10
+      1: 0.05
+      2: 0.0
+      3: 0.0
+      4: 0.0
+      5: 0.0
+      6: 0.0
+      7: 0.0
+      8: 0.0
+      9: 0.0
+      10: 0.0
+      11: 0.0
+      12: 0.0
+      13: 0.0
+      14: 0.0
+      15: 0.0
+      16: 0.01
+      17: 0.0
+      18: 0.0
+      19: 0.05
+      20: 0.12
+      21: 0.18
+      22: 0.20
+      23: 0.16
+
 # Jouhar's locked Phase 0 metric selection (architecture doc section 9).
 # The gold layer must be able to answer every one of these via plain SQL.
 metrics:

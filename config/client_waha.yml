@@ -378,6 +378,76 @@ web:
   booking_noise_std_pct: 0.15
   customer_pool_size: 4000             # repeat customers emerge from sampling this pool with replacement
 
+# Tenant monthly sales (Source 3). Target_avg_monthly_sales_kwd is calibrated
+# against each tenant's turnover_threshold_kwd in tenants.csv (sales need to
+# sit near/above threshold in peak months for turnover rent to be a real
+# mechanic), then scaled month to month by the park seasonality curve so
+# tenant sales rise and fall with the same footfall driver as everything
+# else. This produces the TRUE clean monthly figure; session 6 adds the
+# format mess (column names, date formats, late/restated submissions).
+# Planted insight: T06 (Little Explorers Toys) reports only ~60% of its true
+# sales every month, a findable under-reporting pattern relative to its
+# footfall share and category peers.
+tenant_sales:
+  target_avg_monthly_sales_kwd:
+    T01: 16000
+    T02: 8000
+    T03: 6500
+    T04: 5800
+    T05: 13000
+    T06: 9500
+    T07: 14500
+    T08: 8200
+    T09: 11000
+    T10: 5200
+  under_reporting_tenant: T06
+  under_reporting_factor: 0.60
+  monthly_noise_std_pct: 0.08
+
+# Membership and boarding contracts (Source 7). Gym, equestrian club and
+# horse boarding share one structure because they're the same underlying
+# pattern (member-month recurring revenue with churn). Simulated as a
+# month-by-month cohort: each month some new contracts start and some active
+# ones churn, so tenure naturally varies. Still-active contracts get a null
+# end_date here because that's just what "open-ended" means; the genuine
+# data errors (cancellation before start, duplicate member identity) are a
+# session 6 mess.py concern, not part of the true generation logic.
+contracts:
+  gym_monthly:
+    monthly_amount_kwd: 25.0
+    target_active: 550
+    monthly_churn_rate: 0.08
+    january_intake_multiplier: 1.6       # extra new starts in January
+  gym_annual:
+    monthly_amount_kwd: 20.0             # 240/12, stored as a monthly-equivalent figure
+    target_active: 80
+    term_months: 12
+    renewal_probability: 0.75
+  equestrian_club:
+    monthly_amount_kwd: 40.0
+    target_active: 150
+    monthly_churn_rate: 0.04
+  horse_boarding:
+    monthly_amount_kwd: 180.0
+    target_active: 17                    # of 20 total stable boxes
+    monthly_churn_rate: 0.015
+  new_member_id_start: 1
+
+# Riding lesson schedule and capacity (Source 8). Fixed daily slot counts per
+# level; booked count is driven by equestrian_lessons seasonality x a
+# per-level target utilization. The utilization targets themselves (not just
+# seasonal swings) plant the demo's scheduling insight: beginner slots run
+# close to full while advanced slots sit half-empty, every month of the year.
+# Clean data only; missing attendance and overbooking are session 6.
+lessons:
+  levels:
+    beginner:     { slots_per_day: 6, capacity: 6, target_utilization: 0.92, instructor_id: I02 }
+    intermediate: { slots_per_day: 4, capacity: 5, target_utilization: 0.70, instructor_id: I04 }
+    advanced:     { slots_per_day: 3, capacity: 4, target_utilization: 0.45, instructor_id: I03 }
+  start_times: ["08:00", "10:00", "16:00", "17:00", "18:00", "19:00"]
+  no_show_rate: 0.08
+  utilization_noise_std_pct: 0.10
+
 # Jouhar's locked Phase 0 metric selection (architecture doc section 9).
 # The gold layer must be able to answer every one of these via plain SQL.
 metrics:

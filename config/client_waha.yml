@@ -319,6 +319,65 @@ footfall:
   noise_std_pct: 0.06                  # daily gaussian noise, as a % of that day's total
   gate_noise_std_pct: 0.03             # additional per-gate noise on top of the fixed share
 
+# POS sales (Source 1, own-operated venues, D365 F&O export shape). Playground
+# and Farm ticket volume is driven off the same gates that feed the park
+# seasonality (footfall x conversion rate); gym day passes and equestrian
+# walk-in package sales run off their own venue seasonality profile instead,
+# since they aren't gated by the same turnstile counters. Clean data only;
+# duplicate invoice lines and refunds arrive in session 6.
+pos:
+  gates_feeding_park_venues: [G01, G02]
+  playground:
+    ticket_conversion_rate: 0.10         # share of that day's G01+G02 footfall buying a ticket
+    ticket_mix: { adult: 0.55, child: 0.35, family: 0.10 }
+  farm:
+    ticket_conversion_rate: 0.05
+    ticket_mix: { adult: 0.6, child: 0.4 }
+    kiosk_attach_rate: 0.35             # share of farm visitors who also buy a kiosk item
+  gym:
+    base_daypasses_per_day: 15          # scaled by the gym seasonality profile
+  equestrian_walkin:
+    base_lesson_package_sales_per_day: 1.2   # walk-in package sales; most packages sell online instead
+  payment_mode_mix: { cash: 0.35, card: 0.65 }
+  basket_noise_std_pct: 0.10
+
+# Web sessions and bookings (Source 4, GA4-flavoured export). Session volume
+# follows a blended demand index across the three profiles families actually
+# browse before buying. Planted insight: paid_social's conversion rate decays
+# linearly over the two years while its session share stays flat, so the
+# channel looks fine on volume and only reveals itself as a problem once you
+# compute conversion - exactly the kind of thing a paid-media budget keeps
+# funding long after it should have been cut.
+web:
+  base_daily_sessions: 900
+  demand_blend: { park: 0.6, equestrian_lessons: 0.3, gym: 0.1 }
+  channel_mix: { organic: 0.35, paid_social: 0.30, direct: 0.20, referral: 0.15 }
+  device_mix: { mobile: 0.72, desktop: 0.28 }
+  engaged_session_rate: 0.62
+  session_noise_std_pct: 0.08
+  conversion_rate:
+    organic: 0.055
+    direct: 0.075
+    referral: 0.045
+    paid_social:                       # linear decay, not seasonal, so calendars.py's cyclic
+      start_date: "2024-07-01"         # interpolation doesn't apply - this is a straight ramp
+      start_rate: 0.050
+      end_date: "2026-07-01"
+      end_rate: 0.018
+  # Baseline daily booking count per product at demand-index = 1.0, before
+  # channel split. Profile picks which seasonality curve scales that product.
+  booking_products:
+    playground_ticket:      { base_per_day: 80,  profile: park,               qty_range: [1, 4] }
+    farm_ticket:             { base_per_day: 45,  profile: park,               qty_range: [1, 4] }
+    gym_daypass:              { base_per_day: 12,  profile: gym,                qty_range: [1, 2] }
+    gym_membership:           { base_per_day: 2.0, profile: gym,                qty_range: [1, 1] }
+    event_ticket:             { base_per_day: 6,   profile: park,               qty_range: [1, 6] }
+    lesson_package_beginner:    { base_per_day: 4,   profile: equestrian_lessons, qty_range: [1, 1] }
+    lesson_package_intermediate: { base_per_day: 2,   profile: equestrian_lessons, qty_range: [1, 1] }
+    lesson_package_advanced:    { base_per_day: 1,   profile: equestrian_lessons, qty_range: [1, 1] }
+  booking_noise_std_pct: 0.15
+  customer_pool_size: 4000             # repeat customers emerge from sampling this pool with replacement
+
 # Jouhar's locked Phase 0 metric selection (architecture doc section 9).
 # The gold layer must be able to answer every one of these via plain SQL.
 metrics:

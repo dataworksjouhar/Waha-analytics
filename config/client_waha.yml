@@ -448,6 +448,67 @@ lessons:
   no_show_rate: 0.08
   utilization_noise_std_pct: 0.10
 
+# Every deliberate imperfection from the architecture doc section 3, each
+# behind its own toggle so generator/mess.py can be run with clean output
+# for testing transforms and messy output for the real demo. Nothing here
+# changes the TRUE underlying numbers computed in sessions 3-5; this only
+# corrupts how those numbers arrive, which is the whole point: the pipeline
+# must detect and flag these, never silently drop them.
+mess:
+  enabled: true
+  footfall:
+    dead_sensor: { gate_id: "G03", start_date: "2025-01-10", hours: 48 }
+    double_counting_sensor: { gate_id: "G04", start_date: "2025-06-01", end_date: "2025-06-14", multiplier: 2.0 }
+    gate_name_styles:
+      canonical: { G01: "Main Gate", G02: "North Gate", G03: "Equestrian Gate", G04: "East Gate" }
+      underscore: { G01: "GATE_1", G02: "GATE_2", G03: "GATE_3", G04: "GATE_4" }
+      short: { G01: "G1", G02: "G2", G03: "G3", G04: "G4" }
+  pos:
+    duplicate_line_rate: 0.015       # share of lines re-appended verbatim (re-export overlap)
+    refund_rate: 0.02                # share of lines that generate a later negative-qty refund line
+    refund_delay_days_range: [0, 5]
+  web_bookings:
+    missing_channel_rate: 0.05
+    cancellation_rate: 0.04          # share of bookings that arrive as a negative-amount cancellation row
+    cancellation_delay_days_range: [1, 10]
+  events:
+    bad_range_event_id: "EVT016"     # gets end_date swapped before start_date, the DQ catch
+  tenant_submissions:
+    column_style:
+      T01: gross_only
+      T02: gross_only
+      T03: net_only
+      T04: both
+      T05: gross_only
+      T06: net_only
+      T07: both
+      T08: gross_only
+      T09: net_only
+      T10: gross_only
+    date_format_style:
+      T01: iso
+      T02: iso
+      T03: dmy_slash
+      T04: iso
+      T05: month_name
+      T06: iso
+      T07: dmy_slash
+      T08: iso
+      T09: month_name
+      T10: iso
+    weekly_reporter: "T03"           # this tenant reports weekly rows instead of one monthly row
+    net_sales_factor: 0.90           # net = gross x this, when a tenant reports net_sales
+    late_days_range: [5, 40]
+    restatement_rate: 0.10
+    restatement_extra_days_range: [10, 30]
+  contracts:
+    bad_cancellation_rate: 0.02      # cancellation_date set before start_date, a DQ catch
+    duplicate_identity_count: 12     # members holding both a gym and an equestrian contract, duplicated under a 2nd member_id
+  lessons:
+    missing_attended_rate: 0.05
+    overbooking_rate: 0.03
+    overbooking_extra_range: [1, 2]
+
 # Jouhar's locked Phase 0 metric selection (architecture doc section 9).
 # The gold layer must be able to answer every one of these via plain SQL.
 metrics:

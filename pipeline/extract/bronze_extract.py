@@ -114,47 +114,62 @@ def _bulk_register(conn, source_name: str, entries: list[tuple[str, str, int, st
     )
 
 
-def _load_file_chunk(engine, source_name: str, chunk: list[tuple[Path, str, bool]], table: str, read_fn) -> None:
-    """Loads one small group of files in a single transaction, with one
-    retry on a transient connection drop (observed against the free-tier
-    Supabase pooler under sustained load)."""
-    schema, table_name = table.split(".")
+def _with_retries(fn, attempts: int = 5):
+    """Runs fn() with retries on a transient connection failure: the
+    free-tier Supabase pooler drops connections mid-transaction under
+    sustained load, refuses a brand new connection outright, and DNS
+    lookups for it occasionally blip, all observed across repeated runs
+    of this extract. Backoff grows each attempt, capped at 20s."""
     last_error = None
-    for attempt in range(2):
+    for attempt in range(attempts):
         try:
-            with engine.begin() as conn:
-                changed_names = [path.name for path, _, is_changed in chunk if is_changed]
-                if changed_names:
-                    conn.execute(
-                        sqlalchemy.text(f"DELETE FROM {table} WHERE _source_file = ANY(:names)"),
-                        {"names": changed_names},
-                    )
-
-                frames = [read_fn(path) for path, _, _ in chunk]
-                registry_entries = [
-                    (path.name, str(path), len(df), checksum)
-                    for (path, checksum, _), df in zip(chunk, frames)
-                ]
-
-                combined = pd.concat(frames, ignore_index=True)
-                combined.to_sql(
-                    table_name, conn, schema=schema, if_exists="append", index=False,
-                    method="multi", chunksize=INSERT_CHUNKSIZE,
-                )
-                _bulk_register(conn, source_name, registry_entries)
-            return
+            return fn()
         except sqlalchemy.exc.OperationalError as e:
             last_error = e
-            time.sleep(2)
+            if attempt < attempts - 1:
+                time.sleep(min(2 * (attempt + 1), 20))
     raise last_error
+
+
+def _load_file_chunk(engine, source_name: str, chunk: list[tuple[Path, str, bool]], table: str, read_fn) -> None:
+    """Loads one small group of files in a single transaction, retrying the
+    whole transaction on a transient connection drop."""
+    schema, table_name = table.split(".")
+
+    def _do_load():
+        with engine.begin() as conn:
+            changed_names = [path.name for path, _, is_changed in chunk if is_changed]
+            if changed_names:
+                conn.execute(
+                    sqlalchemy.text(f"DELETE FROM {table} WHERE _source_file = ANY(:names)"),
+                    {"names": changed_names},
+                )
+
+            frames = [read_fn(path) for path, _, _ in chunk]
+            registry_entries = [
+                (path.name, str(path), len(df), checksum)
+                for (path, checksum, _), df in zip(chunk, frames)
+            ]
+
+            combined = pd.concat(frames, ignore_index=True)
+            combined.to_sql(
+                table_name, conn, schema=schema, if_exists="append", index=False,
+                method="multi", chunksize=INSERT_CHUNKSIZE,
+            )
+            _bulk_register(conn, source_name, registry_entries)
+
+    _with_retries(_do_load)
 
 
 def _load_batch(engine, source_name: str, files: list[Path], table: str, read_fn, verbose: bool = True) -> int:
     """Figures out which files are new/changed, then loads them in small
     file-count chunks (each its own short-lived transaction) rather than
     one transaction spanning the whole source."""
-    with engine.begin() as conn:
-        registered = _registered_checksums(conn, source_name)
+    def _fetch_registered():
+        with engine.begin() as conn:
+            return _registered_checksums(conn, source_name)
+
+    registered = _with_retries(_fetch_registered)
     todo = _files_needing_load(files, registered)
     if not todo:
         return 0

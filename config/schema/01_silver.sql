@@ -231,6 +231,7 @@ CREATE TABLE IF NOT EXISTS silver.contracts (
     status                                       TEXT NOT NULL,    -- active, expired, cancelled
     cancellation_date                              DATE,
     stable_id                                        TEXT,
+    phone_number                                       TEXT,          -- identity resolution across gym/equestrian systems
     _source_file                                       TEXT NOT NULL,
     _loaded_at                                           TIMESTAMP NOT NULL DEFAULT now(),
     _dq_flags                                              TEXT[] NOT NULL DEFAULT '{}'

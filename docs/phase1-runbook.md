@@ -289,10 +289,10 @@ Then update the analytics-venture skill file with Phase 1 status, and move to Ph
 |---|---|---|---|
 | 1 | Config, seeds, schema DDL | yes | yes |
 | 2 | Calendar and seasonality | yes | yes |
-| 3 | Weather and footfall | | |
-| 4 | POS, bookings, web | | |
-| 5 | Tenants, contracts, lessons | | |
-| 6 | Imperfections, full run | | |
+| 3 | Weather and footfall | yes | yes |
+| 4 | POS, bookings, web | yes | yes |
+| 5 | Tenants, contracts, lessons | yes | yes |
+| 6 | Imperfections, full run | yes | yes |
 | 7 | Schema deploy, bronze extract | | |
 | 8 | Silver, structured sources | | |
 | 9 | Silver, messy sources | | |

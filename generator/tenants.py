@@ -28,6 +28,13 @@ def build_tenant_sales(config: dict, rng: np.random.Generator) -> pd.DataFrame:
     factors = seasonality_factor(pd.Series(month_ends), "park", config)
     avg_factor = factors.mean()
 
+    # tenants.csv carries one row per SCD2 version (T09 has two, for its
+    # category change), but lease_start/lease_end and the sales figures
+    # themselves don't vary by version - only category does. Iterating
+    # every row would generate T09's monthly sales twice, producing
+    # duplicate tenant-month records downstream.
+    tenants = tenants.drop_duplicates(subset="tenant_id", keep="first")
+
     rows = []
     for _, tenant in tenants.iterrows():
         tenant_id = tenant["tenant_id"]

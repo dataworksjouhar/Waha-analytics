@@ -293,7 +293,7 @@ Then update the analytics-venture skill file with Phase 1 status, and move to Ph
 | 4 | POS, bookings, web | yes | yes |
 | 5 | Tenants, contracts, lessons | yes | yes |
 | 6 | Imperfections, full run | yes | yes |
-| 7 | Schema deploy, bronze extract | | |
+| 7 | Schema deploy, bronze extract | yes | yes |
 | 8 | Silver, structured sources | | |
 | 9 | Silver, messy sources | | |
 | 10 | Gold dimensions, SCD2 | | |

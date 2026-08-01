@@ -294,8 +294,8 @@ Then update the analytics-venture skill file with Phase 1 status, and move to Ph
 | 5 | Tenants, contracts, lessons | yes | yes |
 | 6 | Imperfections, full run | yes | yes |
 | 7 | Schema deploy, bronze extract | yes | yes |
-| 8 | Silver, structured sources | | |
-| 9 | Silver, messy sources | | |
+| 8 | Silver, structured sources | yes | yes |
+| 9 | Silver, messy sources | yes | yes |
 | 10 | Gold dimensions, SCD2 | | |
 | 11 | Gold facts | | |
 | 12 | DQ, orchestrator, validation | | |

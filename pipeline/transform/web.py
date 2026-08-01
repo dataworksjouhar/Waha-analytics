@@ -16,11 +16,11 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import read_bronze, replace_silver_table
+from pipeline.util import read_table, replace_table
 
 
 def transform_sessions(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.web_sessions_raw")
+    raw = read_table(engine, "bronze.web_sessions_raw")
     df = pd.DataFrame({
         "session_date": pd.to_datetime(raw["date"]).dt.date,
         "channel": raw["channel"],
@@ -30,11 +30,11 @@ def transform_sessions(engine: sqlalchemy.engine.Engine) -> int:
         "users": pd.to_numeric(raw["users"]).astype("Int64"),
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.web_sessions", df)
+    return replace_table(engine, "silver.web_sessions", df)
 
 
 def transform_bookings(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.web_bookings_raw")
+    raw = read_table(engine, "bronze.web_bookings_raw")
 
     amount = pd.to_numeric(raw["amount_kwd"])
     channel_missing = raw["channel"].isna()
@@ -51,7 +51,7 @@ def transform_bookings(engine: sqlalchemy.engine.Engine) -> int:
         "_source_file": raw["_source_file"],
         "_dq_flags": [["channel_missing"] if missing else [] for missing in channel_missing],
     })
-    return replace_silver_table(engine, "silver.web_bookings", df)
+    return replace_table(engine, "silver.web_bookings", df)
 
 
 def transform_all(engine: sqlalchemy.engine.Engine | None = None) -> dict[str, int]:

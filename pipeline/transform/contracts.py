@@ -35,12 +35,12 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import read_bronze, replace_silver_table
+from pipeline.util import read_table, replace_table
 
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     engine = engine or get_engine()
-    raw = read_bronze(engine, "bronze.contracts_raw")
+    raw = read_table(engine, "bronze.contracts_raw")
 
     # contracts_YYYYMM.csv sorts lexically in chronological order, so the
     # last file a contract_id appears in is its most recent known state.
@@ -73,7 +73,7 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
             dq_flags[i].append("shared_phone_across_members")
     df["_dq_flags"] = dq_flags
 
-    return replace_silver_table(engine, "silver.contracts", df)
+    return replace_table(engine, "silver.contracts", df)
 
 
 if __name__ == "__main__":

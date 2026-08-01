@@ -25,7 +25,7 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import read_bronze, replace_silver_table
+from pipeline.util import read_table, replace_table
 
 
 def _parse_mixed_dates(raw: pd.Series) -> pd.Series:
@@ -45,7 +45,7 @@ def _parse_mixed_dates(raw: pd.Series) -> pd.Series:
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     engine = engine or get_engine()
-    raw = read_bronze(engine, "bronze.tenant_sales_raw")
+    raw = read_table(engine, "bronze.tenant_sales_raw")
 
     raw["parsed_date"] = _parse_mixed_dates(raw["date_raw"])
     raw["gross_sales"] = pd.to_numeric(raw["gross_sales_raw"], errors="coerce")
@@ -90,7 +90,7 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
             dq_flags[i].append("no_sales_reported")
     df["_dq_flags"] = dq_flags
 
-    return replace_silver_table(engine, "silver.tenant_sales_monthly", df)
+    return replace_table(engine, "silver.tenant_sales_monthly", df)
 
 
 if __name__ == "__main__":

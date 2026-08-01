@@ -12,12 +12,12 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import read_bronze, replace_silver_table
+from pipeline.util import read_table, replace_table
 
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     engine = engine or get_engine()
-    raw = read_bronze(engine, "bronze.events_raw")
+    raw = read_table(engine, "bronze.events_raw")
 
     start_date = pd.to_datetime(raw["start_date"]).dt.date
     end_date = pd.to_datetime(raw["end_date"]).dt.date
@@ -33,7 +33,7 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
         "_source_file": raw["_source_file"],
         "_dq_flags": [["end_before_start"] if flagged else [] for flagged in end_before_start],
     })
-    return replace_silver_table(engine, "silver.events", df)
+    return replace_table(engine, "silver.events", df)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import read_bronze, replace_silver_table
+from pipeline.util import read_table, replace_table
 
 
 def _date(s: pd.Series) -> pd.Series:
@@ -28,7 +28,7 @@ def _num(s: pd.Series) -> pd.Series:
 
 
 def transform_venues(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.master_venues_raw")
+    raw = read_table(engine, "bronze.master_venues_raw")
     df = pd.DataFrame({
         "venue_id": raw["venue_id"],
         "venue_name": raw["venue_name"],
@@ -37,22 +37,22 @@ def transform_venues(engine: sqlalchemy.engine.Engine) -> int:
         "description": raw["description"],
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.venues", df)
+    return replace_table(engine, "silver.venues", df)
 
 
 def transform_gates(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.master_gates_raw")
+    raw = read_table(engine, "bronze.master_gates_raw")
     df = pd.DataFrame({
         "gate_id": raw["gate_id"],
         "gate_name": raw["gate_name"],
         "description": raw["description"],
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.gates", df)
+    return replace_table(engine, "silver.gates", df)
 
 
 def transform_products(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.master_products_raw")
+    raw = read_table(engine, "bronze.master_products_raw")
     df = pd.DataFrame({
         "product_id": raw["product_id"],
         "product_code": raw["product_code"],
@@ -62,11 +62,11 @@ def transform_products(engine: sqlalchemy.engine.Engine) -> int:
         "unit_price_kwd": _num(raw["unit_price_kwd"]),
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.products", df)
+    return replace_table(engine, "silver.products", df)
 
 
 def transform_tenants(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.master_tenants_raw")
+    raw = read_table(engine, "bronze.master_tenants_raw")
     df = pd.DataFrame({
         "tenant_id": raw["tenant_id"],
         "tenant_name": raw["tenant_name"],
@@ -83,11 +83,11 @@ def transform_tenants(engine: sqlalchemy.engine.Engine) -> int:
         "effective_end_date": _date(raw["effective_end_date"]),
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.tenants", df)
+    return replace_table(engine, "silver.tenants", df)
 
 
 def transform_stables(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.master_stables_raw")
+    raw = read_table(engine, "bronze.master_stables_raw")
     df = pd.DataFrame({
         "stable_id": raw["stable_id"],
         "box_no": raw["box_no"],
@@ -95,11 +95,11 @@ def transform_stables(engine: sqlalchemy.engine.Engine) -> int:
         "status": raw["status"],
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.stables", df)
+    return replace_table(engine, "silver.stables", df)
 
 
 def transform_instructors(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.master_instructors_raw")
+    raw = read_table(engine, "bronze.master_instructors_raw")
     df = pd.DataFrame({
         "instructor_id": raw["instructor_id"],
         "instructor_name": raw["instructor_name"],
@@ -108,11 +108,11 @@ def transform_instructors(engine: sqlalchemy.engine.Engine) -> int:
         "status": raw["status"],
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.instructors", df)
+    return replace_table(engine, "silver.instructors", df)
 
 
 def transform_horses(engine: sqlalchemy.engine.Engine) -> int:
-    raw = read_bronze(engine, "bronze.master_horses_raw")
+    raw = read_table(engine, "bronze.master_horses_raw")
     df = pd.DataFrame({
         "horse_id": raw["horse_id"],
         "horse_name": raw["horse_name"],
@@ -121,7 +121,7 @@ def transform_horses(engine: sqlalchemy.engine.Engine) -> int:
         "stable_id": raw["stable_id"],
         "_source_file": raw["_source_file"],
     })
-    return replace_silver_table(engine, "silver.horses", df)
+    return replace_table(engine, "silver.horses", df)
 
 
 def transform_all(engine: sqlalchemy.engine.Engine | None = None) -> dict[str, int]:

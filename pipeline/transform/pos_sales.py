@@ -20,7 +20,7 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import read_bronze, replace_silver_table
+from pipeline.util import read_table, replace_table
 
 _DEDUP_KEY = [
     "invoice_id", "sales_id", "invoice_date", "item_id", "qty",
@@ -30,7 +30,7 @@ _DEDUP_KEY = [
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     engine = engine or get_engine()
-    raw = read_bronze(engine, "bronze.pos_sales_raw")
+    raw = read_table(engine, "bronze.pos_sales_raw")
 
     df = pd.DataFrame({
         "invoice_id": raw["invoiceid"],
@@ -51,7 +51,7 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     df["is_refund"] = df["qty"] < 0
     df["is_duplicate"] = df.groupby(_DEDUP_KEY, dropna=False).cumcount() > 0
 
-    return replace_silver_table(engine, "silver.pos_sales_lines", df)
+    return replace_table(engine, "silver.pos_sales_lines", df)
 
 
 if __name__ == "__main__":

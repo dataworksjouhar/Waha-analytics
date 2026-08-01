@@ -24,12 +24,12 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import read_bronze, replace_silver_table
+from pipeline.util import read_table, replace_table
 
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     engine = engine or get_engine()
-    raw = read_bronze(engine, "bronze.lessons_raw")
+    raw = read_table(engine, "bronze.lessons_raw")
 
     capacity = pd.to_numeric(raw["capacity"]).astype("Int64")
     booked = pd.to_numeric(raw["booked"]).astype("Int64")
@@ -48,7 +48,7 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
         "_source_file": raw["_source_file"],
     })
 
-    return replace_silver_table(engine, "silver.lesson_slots", df)
+    return replace_table(engine, "silver.lesson_slots", df)
 
 
 if __name__ == "__main__":

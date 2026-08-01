@@ -40,7 +40,7 @@ import pandas as pd
 import sqlalchemy
 
 from pipeline.db import get_engine
-from pipeline.transform.util import load_config, read_bronze, replace_silver_table
+from pipeline.util import load_config, read_table, replace_table
 
 GATE_NAME_ALIASES = {
     "Main Gate": "G01", "GATE_1": "G01", "G1": "G01",
@@ -96,7 +96,7 @@ def _flag_outliers(g: pd.DataFrame) -> pd.DataFrame:
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     engine = engine or get_engine()
-    raw = read_bronze(engine, "bronze.footfall_raw")
+    raw = read_table(engine, "bronze.footfall_raw")
     weekend_codes = {code[:3].upper() for code in load_config()["client"]["weekend"]}
 
     df = pd.DataFrame({
@@ -144,7 +144,7 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
         "is_imputed", "is_outlier_corrected", "_source_file", "_dq_flags",
     ]]
 
-    return replace_silver_table(engine, "silver.footfall_hourly", df)
+    return replace_table(engine, "silver.footfall_hourly", df)
 
 
 if __name__ == "__main__":

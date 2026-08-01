@@ -23,12 +23,21 @@ def with_retries(fn, attempts: int = 5):
     free-tier Supabase pooler drops connections mid-transaction under
     sustained load, refuses a brand new connection outright, and DNS
     lookups for it occasionally blip, all observed across repeated runs
-    against it. Backoff grows each attempt, capped at 20s."""
+    against it. Backoff grows each attempt, capped at 20s.
+
+    Catches InterfaceError alongside OperationalError: when a mid-COPY
+    disconnect happens inside engine.begin()'s transaction block, the
+    real OperationalError gets raised first, but the context manager's
+    own rollback-on-exit then hits the already-dead connection and raises
+    InterfaceError instead - that's what actually propagates out of the
+    with block, so a retry that only catches OperationalError misses this
+    case entirely (seen live: fact_footfall's load dropped mid-COPY and
+    surfaced as InterfaceError, not OperationalError)."""
     last_error = None
     for attempt in range(attempts):
         try:
             return fn()
-        except sqlalchemy.exc.OperationalError as e:
+        except (sqlalchemy.exc.OperationalError, sqlalchemy.exc.InterfaceError) as e:
             last_error = e
             if attempt < attempts - 1:
                 time.sleep(min(2 * (attempt + 1), 20))

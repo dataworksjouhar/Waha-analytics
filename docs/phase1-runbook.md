@@ -297,7 +297,7 @@ Then update the analytics-venture skill file with Phase 1 status, and move to Ph
 | 8 | Silver, structured sources | yes | yes |
 | 9 | Silver, messy sources | yes | yes |
 | 10 | Gold dimensions, SCD2 | yes | yes |
-| 11 | Gold facts | | |
+| 11 | Gold facts | yes | |
 | 12 | DQ, orchestrator, validation | | |
 
 ---
@@ -310,3 +310,10 @@ Bring any of these back to the design chat rather than solving them alone in Cla
 - A curve or number that does not match Kuwait reality
 - Anything that requires a code change where it should be a config change
 - Scope creep pressure (dashboards, ML, extra venues) before Phase 1 is done
+- generator/pos.py and generator/web.py: a refund's/cancellation's date is
+  the original transaction date plus a few days, which pushes a handful of
+  late-window rows (5 POS refunds, 14 booking cancellations) past
+  config.generator.date_range.end. fact_pos_sales and fact_bookings
+  (session 11) drop and warn on these rather than crashing on the NOT NULL
+  date_key FK. Low priority fix: clamp refund/cancellation dates in the
+  generator so this never occurs at the source.

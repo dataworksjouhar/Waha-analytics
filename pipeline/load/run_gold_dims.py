@@ -19,8 +19,8 @@ from pipeline.db import get_engine
 from pipeline.load import dim_customer, dim_date, dim_member, dim_simple, dim_tenant
 
 
-def run() -> None:
-    engine = get_engine()
+def run(engine=None) -> None:
+    engine = engine or get_engine()
 
     print("Date:")
     for name, n in dim_date.transform_all(engine).items():

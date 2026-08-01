@@ -28,7 +28,7 @@ from pathlib import Path
 import pandas as pd
 import sqlalchemy
 
-from pipeline.db import get_engine
+from pipeline.db import get_engine, with_retries
 
 BRONZE_DIR = Path("data/bronze")
 INSERT_CHUNKSIZE = 500
@@ -114,23 +114,6 @@ def _bulk_register(conn, source_name: str, entries: list[tuple[str, str, int, st
     )
 
 
-def _with_retries(fn, attempts: int = 5):
-    """Runs fn() with retries on a transient connection failure: the
-    free-tier Supabase pooler drops connections mid-transaction under
-    sustained load, refuses a brand new connection outright, and DNS
-    lookups for it occasionally blip, all observed across repeated runs
-    of this extract. Backoff grows each attempt, capped at 20s."""
-    last_error = None
-    for attempt in range(attempts):
-        try:
-            return fn()
-        except sqlalchemy.exc.OperationalError as e:
-            last_error = e
-            if attempt < attempts - 1:
-                time.sleep(min(2 * (attempt + 1), 20))
-    raise last_error
-
-
 def _load_file_chunk(engine, source_name: str, chunk: list[tuple[Path, str, bool]], table: str, read_fn) -> None:
     """Loads one small group of files in a single transaction, retrying the
     whole transaction on a transient connection drop."""
@@ -158,7 +141,7 @@ def _load_file_chunk(engine, source_name: str, chunk: list[tuple[Path, str, bool
             )
             _bulk_register(conn, source_name, registry_entries)
 
-    _with_retries(_do_load)
+    with_retries(_do_load)
 
 
 def _load_batch(engine, source_name: str, files: list[Path], table: str, read_fn, verbose: bool = True) -> int:
@@ -169,7 +152,7 @@ def _load_batch(engine, source_name: str, files: list[Path], table: str, read_fn
         with engine.begin() as conn:
             return _registered_checksums(conn, source_name)
 
-    registered = _with_retries(_fetch_registered)
+    registered = with_retries(_fetch_registered)
     todo = _files_needing_load(files, registered)
     if not todo:
         return 0

@@ -15,8 +15,8 @@ from pipeline.db import get_engine
 from pipeline.transform import events, footfall, master_data, pos_sales, weather, web
 
 
-def run() -> None:
-    engine = get_engine()
+def run(engine=None) -> None:
+    engine = engine or get_engine()
 
     print("Master data:")
     for name, n in master_data.transform_all(engine).items():

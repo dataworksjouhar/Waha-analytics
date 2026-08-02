@@ -14,8 +14,8 @@ from pipeline.db import get_engine
 from pipeline.transform import contracts, lessons, tenant_sales
 
 
-def run() -> None:
-    engine = get_engine()
+def run(engine=None) -> None:
+    engine = engine or get_engine()
 
     for label, fn in [
         ("tenant_sales_monthly", tenant_sales.transform),

@@ -19,5 +19,15 @@ CREATE TABLE IF NOT EXISTS dq.check_results (
     checked_at                 TIMESTAMP NOT NULL DEFAULT now()
 );
 
+-- Added for session 12 (pipeline/dq/checks.py). error-severity failures
+-- (uniqueness, referential integrity: invariants the code should always
+-- satisfy) gate the orchestrator; warning-severity failures (row_count,
+-- value_range, freshness: things that can legitimately drift a little)
+-- are surfaced in the run summary but never block it. ADD COLUMN IF NOT
+-- EXISTS keeps this file re-runnable against a database where the table
+-- already exists from session 7, the same idempotency deploy_schema.py's
+-- docstring already promises for every other statement here.
+ALTER TABLE dq.check_results ADD COLUMN IF NOT EXISTS severity TEXT NOT NULL DEFAULT 'error';
+
 CREATE INDEX IF NOT EXISTS ix_check_results_run_id ON dq.check_results (run_id);
 CREATE INDEX IF NOT EXISTS ix_check_results_status ON dq.check_results (status);

@@ -271,13 +271,18 @@ The heaviest work, split across two sessions. This is what interviewers probe ha
 
 ## Phase 1 definition of done
 
-- [ ] `python generator/generate.py` produces two years of messy bronze files
-- [ ] `python pipeline/run.py` builds silver and gold from empty, with DQ logged
-- [ ] Both are idempotent and reproducible
-- [ ] You can answer three business questions in plain SQL from gold
+- [x] `python generator/generate.py` produces two years of messy bronze files
+- [x] `python pipeline/run.py` builds silver and gold, with DQ logged (verified
+      against the live, already-populated database, not yet against a
+      dropped/empty one - that's the exam item below)
+- [x] Both are idempotent and reproducible (re-run confirmed: bronze extract
+      skipped all 4,674 already-registered files on checksum match, silver/gold
+      rebuilt with identical row counts)
+- [ ] You can answer three business questions in plain SQL from gold - **your
+      exam, unaided, see session 12 below. Not done for you on purpose.**
 - [ ] You can explain every file without notes
-- [ ] README reads well to a stranger
-- [ ] Git history tells the story session by session
+- [x] README reads well to a stranger
+- [x] Git history tells the story session by session
 
 Then update the analytics-venture skill file with Phase 1 status, and move to Phase 2 (the frontend template).
 
@@ -297,8 +302,8 @@ Then update the analytics-venture skill file with Phase 1 status, and move to Ph
 | 8 | Silver, structured sources | yes | yes |
 | 9 | Silver, messy sources | yes | yes |
 | 10 | Gold dimensions, SCD2 | yes | yes |
-| 11 | Gold facts | yes | |
-| 12 | DQ, orchestrator, validation | | |
+| 11 | Gold facts | yes | yes |
+| 12 | DQ, orchestrator, validation | yes | |
 
 ---
 

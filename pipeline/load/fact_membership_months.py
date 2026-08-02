@@ -45,6 +45,12 @@ step - "explode one row into N months" - has no source table to merge
 against; contract count x ~25 months stays small enough that this is
 cheap in pandas regardless.
 
+explode_contract_months is split out from transform() specifically so
+tests/test_fact_membership_months.py can exercise the window-clamping,
+is_new and is_churned derivation against small synthetic contracts without
+a database - that logic, not the dimension key lookups around it, is the
+part worth pinning down with tests.
+
     python -m pipeline.load.fact_membership_months
 """
 
@@ -56,6 +62,45 @@ import sqlalchemy
 from pipeline.db import get_engine
 from pipeline.load.dim_member import resolve_member_id
 from pipeline.util import read_table, replace_table
+
+
+def explode_contract_months(
+    contracts: pd.DataFrame, min_data_month: pd.Timestamp, max_data_month: pd.Timestamp
+) -> pd.DataFrame:
+    """contracts: contract_id, start_date, end_date (nullable), status,
+    monthly_amount_kwd, plus any other columns the caller wants carried
+    through (member/venue/stable ids). Returns one row per calendar month
+    in [min_data_month, max_data_month] each contract was active, with
+    month_date, is_new, is_churned and month_status added. See this
+    module's docstring for the four rules this has to satisfy."""
+    contracts = contracts.copy()
+    contracts["start_month"] = pd.to_datetime(contracts["start_date"]).values.astype("datetime64[M]")
+    true_end_month = pd.to_datetime(contracts["end_date"]).values.astype("datetime64[M]")
+
+    contracts["effective_start_month"] = contracts["start_month"].clip(lower=min_data_month)
+    contracts["true_end_month"] = pd.Series(true_end_month, index=contracts.index)
+    contracts["capped_end_month"] = contracts["true_end_month"].fillna(max_data_month).clip(
+        upper=max_data_month
+    )
+
+    months = pd.DataFrame({"month_date": pd.date_range(min_data_month, max_data_month, freq="MS")})
+    contracts["_k"] = 1
+    months["_k"] = 1
+    cross = contracts.merge(months, on="_k").drop(columns="_k")
+    cross = cross[
+        (cross["month_date"] >= cross["effective_start_month"])
+        & (cross["month_date"] <= cross["capped_end_month"])
+    ].copy()
+
+    started_in_window = cross["start_month"] >= min_data_month
+    cross["is_new"] = (cross["month_date"] == cross["start_month"]) & started_in_window
+    ended_in_window = cross["true_end_month"].notna() & (cross["true_end_month"] <= max_data_month)
+    is_end_month = cross["month_date"] == cross["capped_end_month"]
+    cross["is_churned"] = is_end_month & ended_in_window & cross["status"].isin(["cancelled", "expired"])
+    cross["month_status"] = "active"
+    cross.loc[cross["is_churned"], "month_status"] = cross.loc[cross["is_churned"], "status"]
+
+    return cross
 
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
@@ -72,35 +117,10 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
 
     contracts = contracts.copy()
     contracts["canonical_member_id"] = resolve_member_id(contracts)
-    contracts["start_month"] = pd.to_datetime(contracts["start_date"]).values.astype("datetime64[M]")
-    true_end_month = pd.to_datetime(contracts["end_date"]).values.astype("datetime64[M]")
 
     min_data_month = pd.to_datetime(dates["full_date"]).min().to_period("M").to_timestamp()
     max_data_month = pd.to_datetime(dates["full_date"]).max().to_period("M").to_timestamp()
-    contracts["effective_start_month"] = contracts["start_month"].clip(lower=pd.Timestamp(min_data_month))
-    contracts["true_end_month"] = pd.Series(true_end_month, index=contracts.index)
-    contracts["capped_end_month"] = contracts["true_end_month"].fillna(
-        pd.Timestamp(max_data_month)
-    ).clip(upper=pd.Timestamp(max_data_month))
-
-    months = pd.DataFrame({
-        "month_date": pd.date_range(min_data_month, max_data_month, freq="MS")
-    })
-    contracts["_k"] = 1
-    months["_k"] = 1
-    cross = contracts.merge(months, on="_k").drop(columns="_k")
-    cross = cross[
-        (cross["month_date"] >= cross["effective_start_month"])
-        & (cross["month_date"] <= cross["capped_end_month"])
-    ].copy()
-
-    started_in_window = cross["start_month"] >= pd.Timestamp(min_data_month)
-    cross["is_new"] = (cross["month_date"] == cross["start_month"]) & started_in_window
-    ended_in_window = cross["true_end_month"].notna() & (cross["true_end_month"] <= max_data_month)
-    is_end_month = cross["month_date"] == cross["capped_end_month"]
-    cross["is_churned"] = is_end_month & ended_in_window & cross["status"].isin(["cancelled", "expired"])
-    cross["month_status"] = "active"
-    cross.loc[cross["is_churned"], "month_status"] = cross.loc[cross["is_churned"], "status"]
+    cross = explode_contract_months(contracts, min_data_month, max_data_month)
 
     cross = cross.merge(dates, left_on="month_date", right_on="full_date", how="left")
     cross = cross.merge(members, left_on="canonical_member_id", right_on="member_id", how="left")

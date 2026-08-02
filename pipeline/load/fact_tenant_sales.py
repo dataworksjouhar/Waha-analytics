@@ -22,6 +22,11 @@ equivalent for this data (no tenant-month is ever submitted more than
 twice), but computing it from the max is the correct general rule and
 doesn't assume that ceiling holds forever.
 
+join_tenant_version is split out from transform() specifically so
+tests/test_fact_tenant_sales.py can exercise the point-in-time join logic
+against a small synthetic dim_tenant without a database - the interesting
+part of this file is that merge-and-filter, not the I/O around it.
+
     python -m pipeline.load.fact_tenant_sales
 """
 
@@ -32,6 +37,21 @@ import sqlalchemy
 
 from pipeline.db import get_engine
 from pipeline.util import read_table, replace_table
+
+
+def join_tenant_version(sales: pd.DataFrame, tenants: pd.DataFrame) -> pd.DataFrame:
+    """sales: tenant_id, sales_month (both required). tenants: tenant_key,
+    tenant_id, valid_from, valid_to (dim_tenant shaped). Returns sales with
+    tenant_key attached, keeping only the version whose [valid_from,
+    valid_to] window contains that row's sales_month - rows whose
+    sales_month matches no version are dropped (a tenant with no dim_tenant
+    coverage for that month at all, which should not happen in practice
+    but is not this function's job to raise on)."""
+    merged = sales.merge(tenants, on="tenant_id", how="left")
+    in_range = (merged["sales_month"] >= merged["valid_from"]) & (
+        merged["valid_to"].isna() | (merged["sales_month"] <= merged["valid_to"])
+    )
+    return merged[in_range]
 
 
 def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
@@ -50,11 +70,7 @@ def transform(engine: sqlalchemy.engine.Engine | None = None) -> int:
     tenants["valid_to"] = pd.to_datetime(tenants["valid_to"])
     dates["full_date"] = pd.to_datetime(dates["full_date"])
 
-    merged = silver.merge(tenants, on="tenant_id", how="left")
-    in_range = (merged["sales_month"] >= merged["valid_from"]) & (
-        merged["valid_to"].isna() | (merged["sales_month"] <= merged["valid_to"])
-    )
-    merged = merged[in_range]
+    merged = join_tenant_version(silver, tenants)
 
     unmatched = len(silver) - len(merged)
     if unmatched:

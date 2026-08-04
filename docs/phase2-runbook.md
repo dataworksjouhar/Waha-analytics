@@ -1,4 +1,4 @@
-# Phase 2 Runbook: Sessions 1 to 8
+# Phase 2 Runbook: Sessions 1 to 9
 
 Al Waha Analytics. Phase 2 is the dashboard: a React app reading static JSON
 exported from the gold layer. Same ritual as Phase 1, one session at a time.
@@ -173,7 +173,70 @@ whose brand colour is red must not end up with red meaning "good".
 
 ---
 
-## Session 4: Footfall and venue sales
+## Session 4: Site plan
+
+Added mid-phase. In the AJRE interview the GM pointed at a large site map on
+his wall and asked whether reporting could cover all of it. This is the
+answer to that question.
+
+**What it builds:** an interactive schematic of the park as the landing
+view. Tenant plots sized true to `dim_tenant.unit_sqm`, fill switching
+between sales per sqm, reported sales, rent owed and days late, gates sized
+by footfall with an hour scrubber, click to select a unit.
+
+**Why a map earns its place, beyond the moment.** Two encodings on one
+mark: plot size is floor area, fill is the selected metric. A large unit
+trading weakly is a big pale rectangle your eye finds first; in a table it
+is just another row. Sales per square metre is an inherently spatial
+measure, and a vacancy is a hole in a terrace. The closed unit (U-112, Al
+Reef Bakery) is hatched rather than coloured, because a vacancy is not "the
+lowest value on the scale", it is the absence of a tenant.
+
+**The decision worth defending: it is a schematic, not a traced map.**
+Al Waha is inspired by real Kuwaiti operators but is never branded as one.
+Putting invented tenant names and invented turnover rent onto a real
+operator's actual footprint would collapse that separation: the demo would
+read as fabricated data about an identifiable company, and it would be
+built on copyrighted satellite imagery. The schematic keeps the fiction
+intact and still reads as a real destination. A future client's true layout
+replaces the coordinates in `config/client_waha.yml` and nothing else,
+which is the template argument made physical: you can redraw the map as
+their site, live, in a meeting.
+
+**The layout is not invented from nothing.** The seed data already implied
+it: unit numbering clusters into a `U-1xx` F&B block and a `U-2xx` retail
+block. Zoning is owner-provided, describing how destinations of this kind
+are actually laid out in Kuwait, west to east: the leased retail and cafes
+run north-south along the western boundary between the two western gates,
+the farm sits just inside that strip, the large open leisure area is
+central, and the arena, equestrian and sports facilities are east.
+
+**A constraint discovered while building it, worth being able to explain.**
+Gate names cannot be changed. `pipeline/transform/footfall.py` carries an
+alias table mapping `"North Gate" -> G02`, and the generator writes those
+names into two years of raw footfall files, so renaming a gate means
+regenerating the source data. The positions therefore honour both the real
+topology and the names the warehouse already uses: the two western gates
+bracket the retail strip north and south, the two eastern gates sit on the
+north-east and south-east corners. Gate descriptions in
+`data/seeds/gates.csv` were updated to match; `dim_gate` still carries the
+old text until the next full `python -m pipeline.run`, because
+`dim_simple.transform_gate` truncates with `cascade=True` and a dims-only
+rerun would take `fact_footfall` with it. Nothing surfaces the stale value:
+the gate tooltip shows a computed busiest hour instead, which is more
+useful than static text anyway.
+
+**Colour:** the fill ramp is orange, not blue, because the season ribbon is
+already a blue scale on the same screen. Validated as an ordinal ramp in
+both modes so the palest step still reads as filled rather than as an empty
+plot. The legend says "low to high" rather than naming a colour, because
+the ramp reverses between light and dark mode.
+
+**Commit:** `Phase 2 session 4: interactive site plan`
+
+---
+
+## Session 5: Footfall and venue sales
 
 **Brief:**
 
@@ -187,11 +250,11 @@ whose brand colour is red must not end up with red meaning "good".
 screen? Does the planted event-that-lost-money insight (architecture doc
 section 8) surface here?
 
-**Commit:** `Phase 2 session 4: footfall and venue sales dashboard section`
+**Commit:** `Phase 2 session 5: footfall and venue sales dashboard section`
 
 ---
 
-## Session 5: Leasing and tenants
+## Session 6: Leasing and tenants
 
 **Brief:**
 
@@ -203,11 +266,11 @@ section 8) surface here?
 **Verify:** does the planted under-reporting tenant (architecture doc
 section 8) stand out against category peers?
 
-**Commit:** `Phase 2 session 5: leasing and tenant dashboard section`
+**Commit:** `Phase 2 session 6: leasing and tenant dashboard section`
 
 ---
 
-## Session 6: Bookings and web
+## Session 7: Bookings and web
 
 **Brief:**
 
@@ -218,11 +281,11 @@ section 8) stand out against category peers?
 **Verify:** does the planted collapsing-conversion paid-social channel show
 up?
 
-**Commit:** `Phase 2 session 6: bookings and web channel dashboard section`
+**Commit:** `Phase 2 session 7: bookings and web channel dashboard section`
 
 ---
 
-## Session 7: Membership and equestrian
+## Session 8: Membership and equestrian
 
 **Brief:**
 
@@ -235,11 +298,11 @@ up?
 **Verify:** does the planted beginner-slots-full/advanced-slots-empty
 pattern show up in the utilization view?
 
-**Commit:** `Phase 2 session 7: membership and equestrian dashboard section`
+**Commit:** `Phase 2 session 8: membership and equestrian dashboard section`
 
 ---
 
-## Session 8: Trust, polish and deploy
+## Session 9: Trust, polish and deploy
 
 **Brief:**
 
@@ -250,7 +313,7 @@ pattern show up in the utilization view?
 > - Update `README.md` with the dashboard, screenshots, how to run it.
 > - Deploy the static app (Vercel/Netlify, static hosting only, no server).
 
-**Commit:** `Phase 2 session 8: trust panel, polish and deploy`
+**Commit:** `Phase 2 session 9: trust panel, polish and deploy`
 
 ---
 
@@ -276,11 +339,12 @@ pattern show up in the utilization view?
 | 1 | SQL reporting views | yes | yes |
 | 2 | Static export script | yes | yes |
 | 3 | React scaffold | yes | yes |
-| 4 | Footfall and venue sales | | |
-| 5 | Leasing and tenants | | |
-| 6 | Bookings and web | | |
-| 7 | Membership and equestrian | | |
-| 8 | Trust, polish, deploy | | |
+| 4 | Site plan | yes | yes |
+| 5 | Footfall and venue sales | | |
+| 6 | Leasing and tenants | | |
+| 7 | Bookings and web | | |
+| 8 | Membership and equestrian | | |
+| 9 | Trust, polish, deploy | | |
 
 ---
 

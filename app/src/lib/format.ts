@@ -4,13 +4,20 @@
  * more reason to let it do the work rather than hand-rolling a toFixed(2)
  * that would quietly be wrong for this client's own currency. */
 
-export const formatCurrency = (value: number | null, currency: string, maximumFractionDigits = 0) =>
+/* minimumFractionDigits has to be pinned alongside the maximum, not left
+ * to default. Intl derives its default fraction digits from the currency
+ * itself, and KWD is one of the three-decimal currencies, so asking for
+ * maximumFractionDigits: 0 while the minimum silently defaults to 3
+ * throws a RangeError (max below min). Hardcoding 2 would have hidden
+ * this until the first client reporting in KWD, which is this one. */
+export const formatCurrency = (value: number | null, currency: string, fractionDigits = 0) =>
   value === null
     ? "-"
     : new Intl.NumberFormat("en-GB", {
         style: "currency",
         currency,
-        maximumFractionDigits,
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
       }).format(value);
 
 export const formatNumber = (value: number | null, maximumFractionDigits = 0) =>

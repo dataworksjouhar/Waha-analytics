@@ -42,6 +42,18 @@
   --season-shoulder: #2a78d6;
   --season-peak: #104281;
 
+  /* sequential ramp for the site plan choropleth, lowest to highest.
+     Orange rather than blue because the season ribbon is already a blue
+     ordinal scale on the same screen, and two blue scales at once would
+     read as one. Validated as an ordinal ramp: the palest step still
+     clears 2:1 against the surface, so a low-value unit reads as filled
+     rather than as an empty hole in the terrace. */
+  --fill-1: #f0a071;
+  --fill-2: #ea7c40;
+  --fill-3: #dd5f22;
+  --fill-4: #b64a1b;
+  --fill-5: #8a3714;
+
   /* status, reserved: never reused as a series colour */
   --status-good: #0ca30c;
   --status-warning: #fab219;
@@ -77,6 +89,14 @@
     --series-7: #9085e9;
     --series-8: #e66767;
 
+    /* reversed for the dark surface: the lowest value is the step nearest
+       the background, so magnitude still reads as "further from the page" */
+    --fill-1: #8c471f;
+    --fill-2: #b85f2c;
+    --fill-3: #e07c45;
+    --fill-4: #f0a071;
+    --fill-5: #f7c4a3;
+
     /* reversed: on a dark surface the weakest season is the step nearest
        the surface, so trough is now the darkest of the three */
     --season-trough: #184f95;
@@ -107,6 +127,12 @@
   --series-6: #008300;
   --series-7: #9085e9;
   --series-8: #e66767;
+
+  --fill-1: #8c471f;
+  --fill-2: #b85f2c;
+  --fill-3: #e07c45;
+  --fill-4: #f0a071;
+  --fill-5: #f7c4a3;
 
   --season-trough: #184f95;
   --season-shoulder: #3987e5;
@@ -383,11 +409,329 @@ h3 {
   flex: none;
 }
 
+/* ---------- site plan ----------
+   The spatial view. Plot area is true to floor area, fill encodes the
+   selected metric, gate circles are sized by footfall at the selected
+   hour. */
+
+.plan {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--gap);
+  align-items: start;
+}
+
+.plan__controls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.plan__metrics {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.plan__metric {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.plan__metric:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.plan__metric:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.plan__metric[aria-pressed="true"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+
+.plan__hour {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+.plan__hour input[type="range"] {
+  width: 150px;
+  accent-color: var(--brand);
+}
+
+.plan__hour-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  font-weight: 600;
+  min-width: 62px;
+}
+
+.plan__figure {
+  position: relative;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+/* Capped so the whole site fits on screen under the season ribbon without
+   scrolling. preserveAspectRatio letterboxes rather than distorting: a
+   plan whose proportions drift is no longer a plan. */
+.plan__svg {
+  width: 100%;
+  height: auto;
+  max-height: 56vh;
+  display: block;
+  touch-action: none;
+}
+
+.plan__site {
+  fill: var(--page);
+  stroke: var(--baseline);
+  stroke-width: 2;
+}
+
+.plan__promenade {
+  fill: none;
+  stroke: var(--baseline);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+
+.plan__venue rect {
+  fill: var(--gridline);
+  stroke: var(--baseline);
+  stroke-width: 1.5;
+  rx: 6;
+}
+
+.plan__venue:hover rect {
+  stroke: var(--text-secondary);
+}
+
+.plan__venue text,
+.plan__gate text {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.plan__venue-sub {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+/* 2px surface gap between adjacent plots, drawn as a stroke in the
+   surface colour so neighbouring fills never touch */
+.plan__unit rect {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.plan__unit--nodata rect {
+  fill: var(--gridline);
+}
+
+.plan__unit--closed rect {
+  fill: url(#vacant-hatch);
+}
+
+.plan__unit:hover rect,
+.plan__unit:focus-visible rect {
+  stroke: var(--text-primary);
+  stroke-width: 2.5;
+  outline: none;
+}
+
+.plan__unit--selected rect {
+  stroke: var(--text-primary);
+  stroke-width: 3;
+}
+
+.plan__unit text {
+  fill: var(--text-primary);
+  font-size: 10px;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__gate circle {
+  fill: var(--brand);
+  fill-opacity: 0.85;
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+
+.plan__terrace-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.plan__tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  z-index: 5;
+  max-width: 220px;
+}
+
+.plan__tooltip strong {
+  display: block;
+  font-size: 0.9375rem;
+}
+
+.plan__tooltip-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__tooltip-meta {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.plan__legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.plan__ramp {
+  display: flex;
+  gap: 2px;
+}
+
+.plan__ramp span {
+  width: 26px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.plan__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.plan__rank {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.plan__rank li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.plan__rank li:last-child {
+  border-bottom: 0;
+}
+
+.plan__rank li[aria-selected="true"] {
+  font-weight: 600;
+}
+
+.plan__rank-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.plan__rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan__rank-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__detail dl {
+  margin: 8px 0 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 0.8125rem;
+}
+
+.plan__detail dt {
+  color: var(--text-secondary);
+}
+
+.plan__detail dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.plan__caveat {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+@media (max-width: 900px) {
+  .plan {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
   .main {
     padding: 12px;
   }
   .ribbon__label {
     display: none;
+  }
+  .plan__hour {
+    margin-left: 0;
   }
 }

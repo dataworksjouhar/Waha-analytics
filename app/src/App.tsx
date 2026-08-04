@@ -9,23 +9,37 @@
 import { useEffect, useMemo, useState } from "react";
 import { SeasonRibbon } from "./components/SeasonRibbon";
 import { SectionPlaceholder } from "./components/SectionPlaceholder";
+import { SitePlan } from "./components/SitePlan";
 import { loadJson, type FootfallDay, type Meta } from "./lib/data";
 import { deriveMonths, type DateRange } from "./lib/months";
+import type { GateHourFootfall, SitePlanData, TenantSiteMetric } from "./lib/sitePlan";
 import { SECTIONS } from "./sections";
 
 export default function App() {
   const [meta, setMeta] = useState<Meta | null>(null);
   const [days, setDays] = useState<FootfallDay[] | null>(null);
+  const [plan, setPlan] = useState<SitePlanData | null>(null);
+  const [tenantMetrics, setTenantMetrics] = useState<TenantSiteMetric[] | null>(null);
+  const [gateFootfall, setGateFootfall] = useState<GateHourFootfall[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [range, setRange] = useState<DateRange | null>(null);
   const [sectionId, setSectionId] = useState(SECTIONS[0].id);
 
   useEffect(() => {
-    Promise.all([loadJson<Meta>("meta"), loadJson<FootfallDay[]>("vw_footfall_daily")])
-      .then(([loadedMeta, loadedDays]) => {
+    Promise.all([
+      loadJson<Meta>("meta"),
+      loadJson<FootfallDay[]>("vw_footfall_daily"),
+      loadJson<SitePlanData>("site_plan"),
+      loadJson<TenantSiteMetric[]>("vw_tenant_site_metrics"),
+      loadJson<GateHourFootfall[]>("vw_footfall_gate_hour_monthly"),
+    ])
+      .then(([loadedMeta, loadedDays, loadedPlan, loadedTenants, loadedGates]) => {
         setMeta(loadedMeta);
         setDays(loadedDays);
+        setPlan(loadedPlan);
+        setTenantMetrics(loadedTenants);
+        setGateFootfall(loadedGates);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
@@ -59,7 +73,7 @@ export default function App() {
     );
   }
 
-  if (!meta || !days) {
+  if (!meta || !days || !plan || !tenantMetrics || !gateFootfall) {
     return <div className="state">Loading...</div>;
   }
 
@@ -92,7 +106,18 @@ export default function App() {
 
       <main className="main">
         <SeasonRibbon months={months} range={range} onRangeChange={setRange} />
-        <SectionPlaceholder section={section} />
+        {section.id === "site" ? (
+          <SitePlan
+            plan={plan}
+            tenantMetrics={tenantMetrics}
+            gateFootfall={gateFootfall}
+            months={months}
+            range={range}
+            currency={meta.client.currency}
+          />
+        ) : (
+          <SectionPlaceholder section={section} />
+        )}
       </main>
     </div>
   );

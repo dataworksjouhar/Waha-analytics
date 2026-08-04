@@ -525,3 +525,107 @@ metrics:
     - avg_transaction_value_by_venue
     - lesson_slot_utilization
     - stable_occupancy_and_boarding_revenue
+
+# ---------------------------------------------------------------------
+# Site plan: the spatial layout of the park, for the dashboard map.
+# ---------------------------------------------------------------------
+#
+# This is a STYLISED SCHEMATIC of the fictional Al Waha Park, not a traced
+# survey of any real site. Al Waha is inspired by real Kuwaiti destination
+# operators (see the README) but is never branded as one, and putting
+# invented tenant names and invented turnover rent onto a real operator's
+# actual footprint would break that separation. A future client's real
+# layout replaces the coordinates below and nothing else: the map is
+# config, exactly like the seasonality curves.
+#
+# Two things are deliberately NOT in here, because they belong to the
+# warehouse rather than to the drawing:
+#   - unit sizes. A plot's area is computed from dim_tenant.unit_sqm, so
+#     the map resizes itself when a lease changes. Hardcoding widths here
+#     would let the drawing drift out of step with the data.
+#   - tenant names. Terraces list UNIT numbers. A unit outlives the tenant
+#     occupying it, so re-letting U-112 must not require redrawing the map.
+site_plan:
+  # SVG user units. Everything below is expressed in this space and scales
+  # to whatever size the browser renders it at.
+  viewbox: [0, 0, 1200, 660]
+
+  # Plot geometry. area_px = unit_sqm * px_per_sqm, and frontage =
+  # area / depth, so units in a terrace sit side by side with frontages in
+  # true proportion to their floor area and no overlap. This is how a real
+  # retail terrace works: a fixed shop depth, frontage varying with size.
+  px_per_sqm: 30
+  terrace_depth_px: 60
+
+  # Own-operated venues, drawn as zones. Hand-placed rectangles: there are
+  # only four and they are not proportional to anything in the data, unlike
+  # the tenant plots.
+  #
+  # Zoning is owner-provided, describing how destinations of this kind are
+  # actually laid out in Kuwait, moving west to east:
+  #   west strip   - the leased retail, cafes and shops, running north to
+  #                  south along the western boundary between the two
+  #                  western gates
+  #   farm zone    - just inside the west strip, as you move inward
+  #   central zone - the large open leisure area
+  #   east zone    - arena, show venue and sports facilities
+  # This is a layout PRINCIPLE, not a traced survey of any real operator's
+  # site. Al Waha is fictional and must stay that way.
+  venues:
+    - venue_id: V02
+      label: The Farm
+      rect: [265, 130, 175, 320]   # x, y, width, height
+    - venue_id: V01
+      label: The Playground
+      rect: [500, 130, 310, 400]
+    - venue_id: V03
+      label: Pulse Gym
+      rect: [860, 130, 270, 160]
+    - venue_id: V04
+      label: Equestrian Centre
+      rect: [860, 330, 270, 215]
+
+  # Leased units, laid out along terraces. Order within a terrace is the
+  # order units appear on the ground, which is why the unit numbering runs
+  # in sequence: U-101, U-105, U-108 are neighbours in reality too.
+  # direction: south runs the terrace north-to-south, which is what the
+  # west strip does.
+  terraces:
+    - id: retail-terrace
+      label: Retail
+      origin: [55, 110]
+      direction: south
+      units: [U-201, U-205, U-210, U-215, U-220]
+    - id: fb-terrace
+      label: F&B
+      origin: [165, 110]
+      direction: south
+      units: [U-101, U-105, U-108, U-112, U-118]
+
+  # Gate positions. Names are fixed upstream: they are baked into two years
+  # of generated footfall files and into the alias table in
+  # pipeline/transform/footfall.py, so a gate cannot be renamed without
+  # regenerating the source data. Positions therefore honour both the real
+  # site's topology and the names the warehouse already uses: the two
+  # western gates bracket the retail strip north and south, and the two
+  # eastern gates sit on the north-east and south-east corners.
+  gates:
+    - gate_id: G02
+      at: [75, 50]
+      label_side: above
+    - gate_id: G01
+      at: [75, 590]
+      label_side: below
+    - gate_id: G03
+      at: [1145, 55]
+      label_side: below
+    - gate_id: G04
+      at: [1145, 600]
+      label_side: above
+
+  # Decorative only: the pedestrian spine along the south of the site,
+  # linking the main gate at the foot of the retail strip to the south-east
+  # corner. Deliberately a single open path rather than a loop, since a
+  # closed route reads as a zone boundary rather than a walkway. Carries
+  # no data.
+  promenade: [[75, 570], [400, 575], [830, 578], [1120, 580]]

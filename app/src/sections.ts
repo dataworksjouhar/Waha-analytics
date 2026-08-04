@@ -18,9 +18,16 @@ export interface Section {
 
 export const SECTIONS: Section[] = [
   {
+    id: "site",
+    label: "Site plan",
+    session: 4,
+    metrics: [1, 3, 4],
+    views: ["site_plan", "vw_tenant_site_metrics", "vw_footfall_gate_hour_monthly"],
+  },
+  {
     id: "footfall",
     label: "Footfall and sales",
-    session: 4,
+    session: 5,
     metrics: [1, 2, 7, 10],
     views: [
       "vw_footfall_daily",
@@ -32,21 +39,21 @@ export const SECTIONS: Section[] = [
   {
     id: "leasing",
     label: "Leasing",
-    session: 5,
+    session: 6,
     metrics: [3, 4],
     views: ["vw_tenant_turnover_rent", "vw_tenant_sales_per_sqm", "vw_tenant_compliance"],
   },
   {
     id: "online",
     label: "Online",
-    session: 6,
+    session: 7,
     metrics: [5, 6],
     views: ["vw_ticket_channel_mix", "vw_web_channel_conversion"],
   },
   {
     id: "recurring",
     label: "Membership and equestrian",
-    session: 7,
+    session: 8,
     metrics: [8, 9, 11, 12],
     views: [
       "vw_membership_active_churn",
@@ -58,7 +65,7 @@ export const SECTIONS: Section[] = [
   {
     id: "quality",
     label: "Data quality",
-    session: 8,
+    session: 9,
     metrics: [],
     views: ["dq_summary"],
   },

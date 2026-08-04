@@ -63,8 +63,14 @@ METRIC_VIEWS = {
 # Exported regardless of the metrics list. Tenant submission compliance is
 # not a headline metric (architecture doc section 9) but underpins the
 # turnover rent figure: "this tenant owes X" means less without "and they
-# filed 40 days late, twice restated" next to it.
-SUPPORTING_VIEWS = ["vw_tenant_compliance"]
+# filed 40 days late, twice restated" next to it. The two site plan views
+# feed the map, which is a way of showing metrics 1, 3 and 4 rather than a
+# metric of its own.
+SUPPORTING_VIEWS = [
+    "vw_tenant_compliance",
+    "vw_tenant_site_metrics",
+    "vw_footfall_gate_hour_monthly",
+]
 
 
 def deploy_views(engine: sqlalchemy.engine.Engine) -> list[str]:
@@ -152,6 +158,125 @@ def export_dq_summary(engine: sqlalchemy.engine.Engine) -> int:
     return len(df)
 
 
+def export_site_plan(engine: sqlalchemy.engine.Engine, config: dict) -> int:
+    """Resolves the site plan config into finished geometry.
+
+    The layout math happens here rather than in the browser for one
+    reason: a plot's size is data, not decoration. Width comes from
+    dim_tenant.unit_sqm, so a lease that changes size redraws the map on
+    the next pipeline run. Doing that arithmetic in Python keeps it in one
+    testable place and leaves the React component with nothing to do but
+    draw rectangles it is handed.
+
+    Unit sizes are read from the CURRENT version of dim_tenant, not from
+    the selected month, so a unit whose tenant has closed (U-112, Al Reef
+    Bakery, lease ended March 2025) still occupies its floor area on the
+    plan. A closed shop does not stop being a shop-sized hole in the
+    terrace, and drawing it as absent would hide a vacancy, which is the
+    single most important thing a leasing manager wants to see.
+    """
+    plan = config["site_plan"]
+    px_per_sqm = plan["px_per_sqm"]
+    depth = plan["terrace_depth_px"]
+
+    def _read():
+        with engine.connect() as conn:
+            tenants = pd.read_sql(
+                """
+                SELECT tenant_id, tenant_name, category, unit_no, unit_sqm, status
+                FROM gold.dim_tenant WHERE is_current
+                """,
+                conn,
+            )
+            venues = pd.read_sql("SELECT venue_id, venue_name, venue_type FROM gold.dim_venue", conn)
+            gates = pd.read_sql("SELECT gate_id, gate_name, description FROM gold.dim_gate", conn)
+        return tenants, venues, gates
+
+    tenants, venues, gates = with_retries(_read)
+    by_unit = {row["unit_no"]: row for _, row in tenants.iterrows()}
+    venue_names = {row["venue_id"]: row for _, row in venues.iterrows()}
+    gate_names = {row["gate_id"]: row for _, row in gates.iterrows()}
+
+    units = []
+    for terrace in plan["terraces"]:
+        x, y = terrace["origin"]
+        # A terrace runs either west-to-east or north-to-south. Shop DEPTH
+        # is the fixed dimension either way and FRONTAGE varies with floor
+        # area, which is how a real retail terrace is actually built: every
+        # unit is as deep as the building, and a bigger shop is a wider
+        # shopfront, not a deeper one.
+        direction = terrace.get("direction", "east")
+        if direction not in ("east", "south"):
+            raise ValueError(f"site_plan terrace {terrace['id']}: direction must be east or south")
+
+        for unit_no in terrace["units"]:
+            tenant = by_unit.get(unit_no)
+            if tenant is None:
+                # A unit in the drawing with no matching row in the
+                # warehouse is a config error worth failing on, not a gap
+                # to paper over: the map would silently lose a shop.
+                raise KeyError(f"site_plan terrace {terrace['id']} references unknown unit {unit_no}")
+
+            frontage = float(tenant["unit_sqm"]) * px_per_sqm / depth
+            width, height = (frontage, depth) if direction == "east" else (depth, frontage)
+
+            units.append(
+                {
+                    "unit_no": unit_no,
+                    "terrace_id": terrace["id"],
+                    "terrace_label": terrace["label"],
+                    "orientation": "horizontal" if direction == "east" else "vertical",
+                    "tenant_id": tenant["tenant_id"],
+                    "tenant_name": tenant["tenant_name"],
+                    "category": tenant["category"],
+                    "status": tenant["status"],
+                    "unit_sqm": float(tenant["unit_sqm"]),
+                    "x": round(x, 2),
+                    "y": round(y, 2),
+                    "width": round(width, 2),
+                    "height": round(height, 2),
+                }
+            )
+            if direction == "east":
+                x += frontage
+            else:
+                y += frontage
+
+    _write_json(
+        OUTPUT_DIR / "site_plan.json",
+        {
+            "viewbox": plan["viewbox"],
+            "note": (
+                "Stylised schematic of the fictional Al Waha Park. Unit areas are "
+                "true to dim_tenant.unit_sqm; positions are illustrative."
+            ),
+            "units": units,
+            "venues": [
+                {
+                    "venue_id": v["venue_id"],
+                    "label": v["label"],
+                    "rect": v["rect"],
+                    "venue_name": venue_names[v["venue_id"]]["venue_name"],
+                    "venue_type": venue_names[v["venue_id"]]["venue_type"],
+                }
+                for v in plan["venues"]
+            ],
+            "gates": [
+                {
+                    "gate_id": g["gate_id"],
+                    "at": g["at"],
+                    "label_side": g["label_side"],
+                    "gate_name": gate_names[g["gate_id"]]["gate_name"],
+                    "description": gate_names[g["gate_id"]]["description"],
+                }
+                for g in plan["gates"]
+            ],
+            "promenade": plan["promenade"],
+        },
+    )
+    return len(units)
+
+
 def export_meta(config: dict, manifest: dict[str, int]) -> None:
     """Client identity and branding, read from config rather than hardcoded
     in React. Rebranding the dashboard for a different client is then a YAML
@@ -211,6 +336,9 @@ def run(engine: sqlalchemy.engine.Engine | None = None) -> dict[str, int]:
 
     manifest["dq_summary"] = export_dq_summary(engine)
     print(f"  dq_summary.json: {manifest['dq_summary']} rows")
+
+    manifest["site_plan"] = export_site_plan(engine, config)
+    print(f"  site_plan.json: {manifest['site_plan']} units")
 
     export_meta(config, manifest)
     print("  meta.json written")

@@ -244,7 +244,7 @@ pattern show up in the utilization view?
 
 | Session | Topic | Done | Committed |
 |---|---|---|---|
-| 1 | SQL reporting views | | |
+| 1 | SQL reporting views | yes | yes |
 | 2 | Static export script | | |
 | 3 | React scaffold | | |
 | 4 | Footfall and venue sales | | |

@@ -104,10 +104,14 @@ tenant you already know, against `dim_tenant.unit_sqm` and a manual sum of
 > Start Phase 2, session 2: the static JSON export.
 >
 > Build `pipeline/export_dashboard_data.py`, reusing `pipeline/db.py`'s
-> `get_engine()`. It runs every view from session 1, writes one JSON file
-> per view to `app/public/data/`, and writes a `meta.json` carrying the
-> client branding and name from `config/client_waha.yml` (currency, primary
-> colour, logo) so the frontend never hardcodes those either.
+> `get_engine()`. It applies the session 1 view files, runs every view,
+> writes one JSON file per view to `app/public/data/`, and writes a
+> `meta.json` carrying the client branding and name from
+> `config/client_waha.yml` (currency, primary colour, logo) so the frontend
+> never hardcodes those either.
+>
+> Which views get exported is driven by `metrics.enabled` in the config, not
+> by a hardcoded list, so turning a metric off for a client is a YAML edit.
 >
 > Re-running always overwrites cleanly, no accumulation.
 >
@@ -119,6 +123,17 @@ shapes match what a chart component will need (arrays of flat objects, not
 nested query result artifacts).
 
 **Commit:** `Phase 2 session 2: static JSON export from gold reporting views`
+
+**Two decisions made during this session, worth being able to defend:**
+
+- `dq.check_results` is exported here (`dq_summary.json`) rather than in
+  session 8, even though session 8 is where it gets displayed. Anything
+  that comes out of the database belongs in the export script; session 8
+  stays purely frontend work.
+- `app/public/data/*.json` is committed, not gitignored, which looks wrong
+  next to `data/bronze/` being ignored. The reason is the deployment model:
+  the static host builds with no database credentials, so uncommitted
+  export output means nothing to deploy.
 
 ---
 
@@ -245,7 +260,7 @@ pattern show up in the utilization view?
 | Session | Topic | Done | Committed |
 |---|---|---|---|
 | 1 | SQL reporting views | yes | yes |
-| 2 | Static export script | | |
+| 2 | Static export script | yes | yes |
 | 3 | React scaffold | | |
 | 4 | Footfall and venue sales | | |
 | 5 | Leasing and tenants | | |

@@ -4,3 +4,9 @@ data/bronze/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Phase 2 frontend. Note that app/public/data/ is deliberately NOT ignored:
+# the dashboard is deployed as a static site with no database access at
+# build time, so the exported JSON has to be in the repo for it to build.
+app/node_modules/
+app/dist/

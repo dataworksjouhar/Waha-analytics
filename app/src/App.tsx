@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FootfallSales } from "./components/FootfallSales";
 import { Leasing } from "./components/Leasing";
 import { Online } from "./components/Online";
+import { Recurring } from "./components/Recurring";
 import { SeasonRibbon } from "./components/SeasonRibbon";
 import { SectionPlaceholder } from "./components/SectionPlaceholder";
 import { SitePlan } from "./components/SitePlan";
@@ -22,6 +23,13 @@ import type {
   ChannelConversionMonth,
   TicketChannelMix,
 } from "./lib/online";
+import type {
+  InstructorCoverage,
+  LessonMonth,
+  MembershipMonth,
+  RevenueMonth,
+  StableMonth,
+} from "./lib/recurring";
 import type { GateHourFootfall, SitePlanData, TenantSiteMetric } from "./lib/sitePlan";
 import { SECTIONS } from "./sections";
 
@@ -45,6 +53,11 @@ interface Bundle {
   mix: TicketChannelMix[];
   channelConversion: ChannelConversion[];
   channelMonthly: ChannelConversionMonth[];
+  membership: MembershipMonth[];
+  revenue: RevenueMonth[];
+  lessons: LessonMonth[];
+  instructors: InstructorCoverage[];
+  stables: StableMonth[];
 }
 
 export default function App() {
@@ -74,6 +87,11 @@ export default function App() {
       mix: loadJson<TicketChannelMix[]>("vw_ticket_channel_mix"),
       channelConversion: loadJson<ChannelConversion[]>("vw_web_channel_conversion"),
       channelMonthly: loadJson<ChannelConversionMonth[]>("vw_web_channel_conversion_monthly"),
+      membership: loadJson<MembershipMonth[]>("vw_membership_active_churn"),
+      revenue: loadJson<RevenueMonth[]>("vw_revenue_summary"),
+      lessons: loadJson<LessonMonth[]>("vw_lesson_utilization_monthly"),
+      instructors: loadJson<InstructorCoverage[]>("vw_instructor_coverage"),
+      stables: loadJson<StableMonth[]>("vw_stable_occupancy"),
     })
       .then(setData)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
@@ -176,6 +194,17 @@ export default function App() {
             mix={data.mix}
             conversion={data.channelConversion}
             monthly={data.channelMonthly}
+            range={range}
+            currency={meta.client.currency}
+          />
+        ) : section.id === "recurring" ? (
+          <Recurring
+            membership={data.membership}
+            revenue={data.revenue}
+            lessons={data.lessons}
+            instructors={data.instructors}
+            stables={data.stables}
+            months={months}
             range={range}
             currency={meta.client.currency}
           />

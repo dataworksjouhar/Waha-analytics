@@ -79,6 +79,14 @@ SUPPORTING_VIEWS = [
     # volume holds up. Supporting rather than a metric of its own: it
     # answers the same question at a grain that can show a trend.
     "vw_web_channel_conversion_monthly",
+    # Metric 11 by month. The headline view averages a summer trough into
+    # a winter peak, which turns "beginner is full and advanced is half
+    # empty every month of peak season" into a mild-sounding annual gap.
+    "vw_lesson_utilization_monthly",
+    # Instructors with no lessons at all. The utilization view can only
+    # show instructors who appear in the fact, so a roster gap is
+    # invisible there by construction.
+    "vw_instructor_coverage",
 ]
 
 

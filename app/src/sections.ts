@@ -62,7 +62,8 @@ export const SECTIONS: Section[] = [
     views: [
       "vw_membership_active_churn",
       "vw_revenue_summary",
-      "vw_lesson_utilization",
+      "vw_lesson_utilization_monthly",
+      "vw_instructor_coverage",
       "vw_stable_occupancy",
     ],
   },

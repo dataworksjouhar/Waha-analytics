@@ -319,6 +319,35 @@ Check what grain the insight needs before building the chart.
 **Verify:** does the planted beginner-slots-full/advanced-slots-empty
 pattern show up in the utilization view?
 
+**Yes, but far too weakly, for the same reason as session 7.**
+`vw_lesson_utilization` is whole-history, and averaging a summer trough
+into a winter peak turns the finding into a mild annual gap (91% against
+48%). `vw_lesson_utilization_monthly` shows what actually happens: from
+October to March beginner runs at 99 to 100 percent of capacity and
+overbooks when it cannot stretch, while advanced never clears 55 in any
+month of the two years. Measured in the same peak months, it is 100.5%
+against 52.7%, which is a timetable decision rather than an observation.
+
+Two other things this session added:
+
+- `vw_instructor_coverage`. The utilization view is an inner reading of
+  the fact, so an instructor with no lessons has no row and a roster gap
+  is invisible by construction. Al Waha has four instructors and rosters
+  three: Fatima Al-Rashid is active, specialty all_levels, and appears
+  against zero lessons in two years.
+- `isPartialMonth` in `lib/months.ts`. The history ends on the first of a
+  month, so the last bucket is one day of till receipts against a whole
+  month's membership snapshot. Left alone, the revenue mix chart renders
+  that month as 98% membership revenue. It is hatched, excluded from the
+  recurring-share tile, and still drawn.
+
+**A caveat that is deliberately in the UI, not just here.** Level and
+instructor are perfectly confounded in this data: each level has exactly
+one instructor. A per-instructor utilization chart would be the same
+three numbers wearing people's names and would imply the data can
+separate a weak coach from a weak level. It cannot, and the section says
+so instead of drawing the chart.
+
 **Commit:** `Phase 2 session 8: membership and equestrian dashboard section`
 
 ---
@@ -364,7 +393,7 @@ pattern show up in the utilization view?
 | 5 | Footfall and venue sales | yes | yes |
 | 6 | Leasing and tenants | yes | yes |
 | 7 | Bookings and web | yes | yes |
-| 8 | Membership and equestrian | | |
+| 8 | Membership and equestrian | yes | yes |
 | 9 | Trust, polish, deploy | | |
 
 ---

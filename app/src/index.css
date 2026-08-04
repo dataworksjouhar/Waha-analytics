@@ -1122,6 +1122,41 @@ h3 {
    as 11px type on the surface, and the line terminating immediately to
    its left already carries the identity. */
 
+/* Hatch overlay marking a bar the reader should not compare with its
+   neighbours. A texture rather than a colour so it survives greyscale,
+   print and colour-vision deficiency, where a "muted" fill would just
+   read as another category. */
+.chart__hatch-line {
+  stroke: var(--surface-1);
+  stroke-width: 2.5;
+  opacity: 0.75;
+}
+
+.chart__bar-hatch {
+  fill: url(#partial-hatch);
+  pointer-events: none;
+}
+
+.chart__swatch--hatched {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--text-muted),
+    var(--text-muted) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+}
+
+/* The secondary figure inside a tooltip row: a share next to an amount,
+   or joiners and leavers next to a headcount. Muted so the primary value
+   stays the thing being read. */
+.chart__tooltip-share {
+  color: var(--text-muted);
+}
+
+.chart__bar[data-series="7"] { fill: var(--series-7); }
+.chart__bar[data-series="3"] { fill: var(--series-3); }
+
 /* ---------- findings ---------- */
 
 /* Plain-language conclusions sitting next to the chart that supports

@@ -105,6 +105,81 @@ LEFT JOIN gold.dim_instructor i ON i.instructor_key = ls.instructor_key
 GROUP BY ls.level, i.instructor_key, i.instructor_name
 ORDER BY ls.level, i.instructor_name;
 
+-- Metric 11 by month, added in session 7's successor for the same reason
+-- the web conversion view gained one: the whole-history figure above says
+-- beginner runs at 91% and advanced at 48%, which reads as a mild
+-- imbalance worth noting. It is not mild. Averaging the year flattens a
+-- summer trough into a winter peak, and the peak is where the decision
+-- lives: from October to March beginner sits at 99 to 100 percent of
+-- capacity (turning demand away, and overbooking when it cannot) while
+-- advanced never clears 55 in any month of the two years.
+--
+-- Both grains are kept. The aggregate is the right answer to "what did
+-- this level run at over two years"; only the monthly rows can show that
+-- the gap holds at every point of the season, which is what separates a
+-- scheduling problem from a seasonal one.
+--
+-- instructor_key is carried even though it adds no information in this
+-- client's data (each level has exactly one instructor, so the two
+-- columns are collinear and a per-instructor reading is really a
+-- per-level reading wearing a name). It stays because a riding school
+-- where instructors cover several levels is the normal case, and this
+-- view should not need rewriting for that client. The frontend rolls up
+-- to level and says why.
+CREATE OR REPLACE VIEW gold.vw_lesson_utilization_monthly AS
+SELECT
+    d.year * 100 + d.month AS month_key,
+    MIN(d.full_date) AS month_start,
+    ls.level,
+    i.instructor_key,
+    i.instructor_name,
+    COUNT(*) AS lesson_count,
+    SUM(ls.capacity) AS total_capacity,
+    SUM(ls.booked)   AS total_booked,
+    SUM(ls.attended) AS total_attended,
+    COUNT(*) FILTER (WHERE ls.attended IS NULL) AS missing_attendance_count,
+    COUNT(*) FILTER (WHERE ls.is_overbooked) AS overbooked_count,
+    ROUND(100.0 * SUM(ls.booked) / NULLIF(SUM(ls.capacity), 0), 1) AS utilization_pct,
+    -- Slots where the coach never marked attendance are excluded from the
+    -- no-show denominator rather than counted as full attendance. A
+    -- missing mark is not evidence that everybody turned up, and the
+    -- count of those slots is carried alongside so the gap is visible.
+    ROUND(100.0 * (SUM(ls.booked) FILTER (WHERE ls.attended IS NOT NULL) - SUM(ls.attended))
+        / NULLIF(SUM(ls.booked) FILTER (WHERE ls.attended IS NOT NULL), 0), 1) AS no_show_rate_pct
+FROM gold.fact_lesson_slots ls
+JOIN gold.dim_date d ON d.date_key = ls.date_key
+LEFT JOIN gold.dim_instructor i ON i.instructor_key = ls.instructor_key
+GROUP BY d.year * 100 + d.month, ls.level, i.instructor_key, i.instructor_name
+ORDER BY month_key, ls.level;
+
+-- Supporting view for metric 11: instructors on the roster who taught no
+-- lessons at all in the period.
+--
+-- This exists because the utilization view is an inner reading of the
+-- fact: an instructor with no slots simply has no row, and a dashboard
+-- built only on that view would show a full roster with everyone busy.
+-- Al Waha employs four instructors and the schedule only ever assigns
+-- three. Whether that is a data gap or a real one (someone on long-term
+-- leave, someone hired and never rostered) is a question for the client,
+-- and the point of the pipeline is to raise it rather than to let a
+-- LEFT JOIN quietly hide it.
+CREATE OR REPLACE VIEW gold.vw_instructor_coverage AS
+SELECT
+    i.instructor_key,
+    i.instructor_id,
+    i.instructor_name,
+    i.specialty_level,
+    i.status,
+    i.hire_date,
+    COALESCE(COUNT(ls.lesson_slot_key), 0) AS lesson_count,
+    COALESCE(SUM(ls.capacity), 0) AS total_capacity,
+    COALESCE(SUM(ls.booked), 0) AS total_booked
+FROM gold.dim_instructor i
+LEFT JOIN gold.fact_lesson_slots ls ON ls.instructor_key = i.instructor_key
+GROUP BY i.instructor_key, i.instructor_id, i.instructor_name, i.specialty_level,
+         i.status, i.hire_date
+ORDER BY lesson_count DESC, i.instructor_name;
+
 -- Metric 12: occupied boxes vs total stable inventory, plus boarding MRR,
 -- by month. Occupancy counts distinct stables under an active boarding
 -- contract that month against the fixed denominator in dim_stable.

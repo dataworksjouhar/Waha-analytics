@@ -53,6 +53,25 @@ export function deriveMonths(days: FootfallDay[]): MonthCell[] {
     });
 }
 
+/** True when the data holds fewer days than the calendar month has.
+ *
+ *  The history ends on the first of a month, so the final bucket is a
+ *  single day. That matters wherever a month is read as a rate or a mix:
+ *  one day of till receipts against a full month's membership snapshot
+ *  would render the last bar as almost pure membership revenue, which is
+ *  an artifact of the cut-off and not something the business did.
+ *
+ *  Derived from the days actually present rather than compared against a
+ *  hardcoded end date, so it stays true when the generator's range moves
+ *  and catches a gap in the middle of the history as well as the end. */
+export function isPartialMonth(month: MonthCell): boolean {
+  const [year, monthNumber] = month.monthStart.split("-").map(Number);
+  // Day 0 of the next month is the last day of this one, which is how you
+  // get February right without a leap-year rule of your own.
+  const daysInMonth = new Date(year, monthNumber, 0).getDate();
+  return month.dayCount < daysInMonth;
+}
+
 export interface DateRange {
   start: string;
   end: string;

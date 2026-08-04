@@ -52,6 +52,8 @@ export async function loadAll<T extends Record<string, Promise<unknown>>>(
 export interface Meta {
   client: {
     name: string;
+    /** the physical site, as distinct from the operating company */
+    site_name: string;
     short_name: string;
     currency: string;
     timezone: string;

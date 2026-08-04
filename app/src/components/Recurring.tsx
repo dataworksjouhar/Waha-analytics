@@ -239,7 +239,7 @@ export function Recurring({
             league table in this dashboard. */}
         <p className="chart__note chart__note--caveat">
           Utilization is shown by level and not by instructor, even though the gold view carries
-          both. At Al Waha each level is taught by exactly one instructor, so the two columns are
+          both. Here each level is taught by exactly one instructor, so the two columns are
           perfectly confounded: a per-instructor chart would be the same three numbers wearing
           people's names, and it would imply the data can tell an underperforming coach from a
           level with less demand. It cannot.{" "}

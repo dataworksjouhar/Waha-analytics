@@ -50,6 +50,36 @@ The project builds one trustworthy view over all of it, where every number can b
 
 Gym memberships and horse boarding share `fact_membership_months` because they are structurally the same thing: a member-month recurring stream with churn.
 
+## The dashboard
+
+A React and TypeScript single page app reading a static JSON export of the gold views. Six sections covering the twelve locked metrics:
+
+| Section | Metrics | What it answers |
+|---|---|---|
+| Site plan | 1, 3, 4 | An interactive map of the estate: which units trade well, where the footfall enters |
+| Footfall and sales | 1, 2, 7, 10 | Daily visitors against last year with weather, revenue per visitor, event ROI, transaction value |
+| Leasing | 3, 4 | Turnover rent owed, sales per square metre, how late tenants file |
+| Online | 5, 6 | Online versus walk-in mix, conversion by acquisition channel over time |
+| Membership and equestrian | 8, 9, 11, 12 | Recurring base and churn, revenue mix, lesson utilization, stable occupancy |
+| Data quality | - | Every check result, and a census of every source imperfection with what was done about it |
+
+**No charting library.** The charts are hand-built SVG on about 150 lines of shared primitives (`app/src/lib/chart.ts`: a linear scale, a path builder, round axis ticks, a nearest-point lookup). A dependency larger than the dashboard sitting between the gold data and the marks on screen is a thing you then have to explain.
+
+Every chart ships a table twin, colour is assigned per entity rather than per rank so filtering never repaints a series, and the categorical palette is validated for colour-vision deficiency rather than chosen by eye.
+
+### What it finds
+
+The generator plants findings that only surface if the modelling is right:
+
+- **A tenant under-reporting sales.** Little Explorers Toys sits 44% below the estate median per square metre, while its monthly sales still track site footfall at 0.93 against a 0.90 peer average. Low level with a normal seasonal shape is what reporting a fixed fraction looks like from outside the tenant's till. The dashboard derives this from the reported figures; nothing reads the generator's answer key.
+- **A paid channel quietly dying.** Paid social conversion falls 50% across the two years while organic, direct and referral all rise, and its session volume never drops. It looks healthy on any report that counts traffic.
+- **An event that lost money.** Spring Break Kids Week 2025 drew 1,109 extra visitors a day and sold 109 KWD a day *less* than a normal day.
+- **A timetable worth changing.** Through peak season beginner riding lessons run at 99 to 100% of capacity and overbook 122 slots rather than turn bookings away, while advanced lessons never clear 55% in any month of two years.
+
+### A note on grain
+
+Three of the six sections needed a reporting view rebuilt at a finer grain before the finding was visible at all. The whole-history conversion view said paid social converts worse than organic, which is true and nearly useless; only a monthly grain shows it collapsing. The same happened with lesson utilization. **A view that answers a metric's wording can still fail the question behind it**, which turned out to be the most portable lesson in the build.
+
 ## Deliberate data quality problems
 
 The generator injects realistic flaws so the pipeline has something real to solve:
@@ -83,6 +113,18 @@ pytest                           # transform tests
 
 The pipeline is idempotent: re-running skips unchanged files on checksum match and does not duplicate rows.
 
+### The dashboard
+
+```bash
+python -m pipeline.export_dashboard_data   # gold views -> app/public/data/*.json
+cd app
+npm install
+npm run dev                                # http://localhost:5173
+npm run build                              # static bundle in app/dist/
+```
+
+The exported JSON is committed to the repository rather than gitignored. It has to be: the static host builds the dashboard with no database credentials and no network path to Postgres, so if the JSON is not in the checkout there is nothing to deploy. The build output is fully static, needs no server, and uses relative asset paths so it works from a domain root or a subpath.
+
 ## Known limitations
 
 - **Full rebuild is slow.** A complete run takes around 76 minutes against a free-tier Postgres in Mumbai, dominated by network round trips rather than compute. Production would load incrementally (changed day only, in seconds); incremental loading is the next planned piece.
@@ -94,8 +136,16 @@ The pipeline is idempotent: re-running skips unchanged files on checksum match a
 ```
 config/       client YAML and schema DDL
 generator/    synthetic source data generation
-pipeline/     extract, transform, load, data quality
+pipeline/     extract, transform, load, data quality, dashboard export
 sql/          gold views and reporting aggregates
+app/          React dashboard (src/lib = data shapes and aggregation,
+              src/components/charts = hand-built SVG charts)
 docs/         architecture and design notes
 tests/        transform tests
 ```
+
+## One template, many clients
+
+Everything client-specific lives in `config/client_waha.yml`: the business name, currency, weekend days, brand colour, seasonality curves, source file patterns and field mappings, the site plan geometry, and which of the twelve metrics are switched on. The pipeline and the dashboard read that config; neither contains the string "Al Waha" as a hardcoded value.
+
+A different client is a new YAML file plus mappings for any source format not already in the shared library. Rebranding the dashboard is a colour and a name in config, not a code change, which is a thing worth demonstrating live in a meeting.

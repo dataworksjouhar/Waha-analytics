@@ -278,7 +278,7 @@ def export_site_plan(engine: sqlalchemy.engine.Engine, config: dict) -> int:
         {
             "viewbox": plan["viewbox"],
             "note": (
-                "Stylised schematic of the fictional Al Waha Park. Unit areas are "
+                f"Stylised schematic of {config['client']['site_name']}. Unit areas are "
                 "true to dim_tenant.unit_sqm; positions are illustrative."
             ),
             "units": units,
@@ -322,6 +322,7 @@ def export_meta(config: dict, manifest: dict[str, int]) -> None:
         {
             "client": {
                 "name": client["name"],
+                "site_name": client["site_name"],
                 "short_name": client["short_name"],
                 "currency": client["currency"],
                 "timezone": client["timezone"],

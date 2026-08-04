@@ -369,16 +369,27 @@ so instead of drawing the chart.
 
 ## Phase 2 definition of done
 
-- [ ] All 12 locked metrics from architecture doc section 9 render from real
+- [x] All 12 locked metrics from architecture doc section 9 render from real
       gold data via static JSON, no live DB calls from the browser
-- [ ] Every planted insight (under-reporting tenant, event that lost money,
+- [x] Every planted insight (under-reporting tenant, event that lost money,
       collapsing paid-social channel, beginner/advanced lesson imbalance) is
-      visible somewhere in the dashboard, not just in the data
-- [ ] Data quality flags are surfaced, not hidden
-- [ ] Branding and client name are config-driven, not hardcoded in React
+      visible somewhere in the dashboard, not just in the data. Each one now
+      carries a plain-language finding next to its chart rather than leaving
+      the reader to derive it.
+- [x] Data quality flags are surfaced, not hidden. The trust panel counts
+      every deliberate imperfection from the same exports the charts use,
+      so the census cannot drift away from what the dashboard shows, and
+      would fall to zero if the pipeline ever started dropping the awkward
+      rows.
+- [x] Branding and client name are config-driven, not hardcoded in React.
+      Checked rather than assumed: the built bundle contains no occurrence
+      of the client name at all. Session 9 found three that had slipped in
+      (two site plan strings, one equestrian caveat) and added
+      `client.site_name` to config, since the site and the operating
+      company are different names and only one of them belongs on a map.
 - [ ] You can explain every file without notes
 - [ ] Deployed and reachable at a public URL
-- [ ] README updated as the portfolio front door
+- [x] README updated as the portfolio front door
 
 ---
 
@@ -394,7 +405,7 @@ so instead of drawing the chart.
 | 6 | Leasing and tenants | yes | yes |
 | 7 | Bookings and web | yes | yes |
 | 8 | Membership and equestrian | yes | yes |
-| 9 | Trust, polish, deploy | | |
+| 9 | Trust, polish, deploy | yes | yes |
 
 ---
 

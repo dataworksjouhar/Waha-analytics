@@ -14,6 +14,12 @@ export interface Section {
   /** architecture doc section 9 metric numbers */
   metrics: number[];
   views: string[];
+  /** whether the season ribbon applies here. False on the data quality
+   *  page, whose views carry no date column: showing a date filter that
+   *  silently changes nothing is a worse lie than showing no filter, and
+   *  it is the kind of thing a reader only discovers by distrusting the
+   *  rest of the page too. */
+  filterable: boolean;
 }
 
 export const SECTIONS: Section[] = [
@@ -23,6 +29,7 @@ export const SECTIONS: Section[] = [
     session: 4,
     metrics: [1, 3, 4],
     views: ["site_plan", "vw_tenant_site_metrics", "vw_footfall_gate_hour_monthly"],
+    filterable: true,
   },
   {
     id: "footfall",
@@ -35,6 +42,7 @@ export const SECTIONS: Section[] = [
       "vw_event_roi",
       "vw_avg_transaction_value",
     ],
+    filterable: true,
   },
   {
     id: "leasing",
@@ -42,6 +50,7 @@ export const SECTIONS: Section[] = [
     session: 6,
     metrics: [3, 4],
     views: ["vw_tenant_turnover_rent", "vw_tenant_sales_per_sqm", "vw_tenant_compliance"],
+    filterable: true,
   },
   {
     id: "online",
@@ -53,6 +62,7 @@ export const SECTIONS: Section[] = [
       "vw_web_channel_conversion",
       "vw_web_channel_conversion_monthly",
     ],
+    filterable: true,
   },
   {
     id: "recurring",
@@ -66,6 +76,7 @@ export const SECTIONS: Section[] = [
       "vw_instructor_coverage",
       "vw_stable_occupancy",
     ],
+    filterable: true,
   },
   {
     id: "quality",
@@ -73,5 +84,6 @@ export const SECTIONS: Section[] = [
     session: 9,
     metrics: [],
     views: ["dq_summary"],
+    filterable: false,
   },
 ];

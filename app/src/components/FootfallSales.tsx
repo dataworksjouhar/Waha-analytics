@@ -165,6 +165,31 @@ export function FootfallSales({
             : ""}
         </p>
         <EventRoiChart events={scoped.events} currency={currency} />
+
+        {flaggedEvents.map((event) => (
+          <div className="finding" key={event.event_id}>
+            <h3 className="finding__title">
+              {event.event_name} filled the park and emptied the tills
+            </h3>
+            <p className="finding__body">
+              It drew {formatNumber(event.footfall_uplift_per_day)} more visitors a day than the
+              fortnight before it, and own-venue sales came in{" "}
+              {formatCurrency(Math.abs(event.sales_uplift_per_day_kwd as number), currency)} a day{" "}
+              <strong>lower</strong> than a normal day. More people, less money, which is the one
+              combination a footfall-only report can never show: on visitor numbers alone this was
+              among the best days of the season.
+            </p>
+            <p className="finding__body">
+              The likely mechanism is worth testing rather than asserting: an event with its own
+              free entertainment pulls a crowd that came for the event and not to spend, and it
+              displaces the regular paying visitor who avoids the queues. Either way the question
+              for the next one is not whether it was busy. It is what the gate cost, what the
+              programming cost, and whether{" "}
+              {formatNumber(event.footfall_uplift_per_day)} extra bodies a day are worth having if
+              they buy less than the people they crowded out.
+            </p>
+          </div>
+        ))}
       </section>
 
       <section className="card">

@@ -1,6 +1,7 @@
 {
   "client": {
     "name": "Al Waha Destination Co.",
+    "site_name": "Al Waha Park",
     "short_name": "waha",
     "currency": "KWD",
     "timezone": "Asia/Kuwait",
@@ -31,7 +32,7 @@
     "lesson_slot_utilization",
     "stable_occupancy_and_boarding_revenue"
   ],
-  "generated_at": "2026-08-04T17:44:22",
+  "generated_at": "2026-08-04T18:10:53",
   "row_counts": {
     "vw_footfall_daily": 731,
     "vw_footfall_sales_conversion": 2693,

@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FootfallSales } from "./components/FootfallSales";
 import { Leasing } from "./components/Leasing";
 import { Online } from "./components/Online";
+import { Quality } from "./components/Quality";
 import { Recurring } from "./components/Recurring";
 import { SeasonRibbon } from "./components/SeasonRibbon";
 import { SectionPlaceholder } from "./components/SectionPlaceholder";
@@ -23,6 +24,7 @@ import type {
   ChannelConversionMonth,
   TicketChannelMix,
 } from "./lib/online";
+import type { DqCheck } from "./lib/quality";
 import type {
   InstructorCoverage,
   LessonMonth,
@@ -58,6 +60,7 @@ interface Bundle {
   lessons: LessonMonth[];
   instructors: InstructorCoverage[];
   stables: StableMonth[];
+  dq: DqCheck[];
 }
 
 export default function App() {
@@ -92,6 +95,7 @@ export default function App() {
       lessons: loadJson<LessonMonth[]>("vw_lesson_utilization_monthly"),
       instructors: loadJson<InstructorCoverage[]>("vw_instructor_coverage"),
       stables: loadJson<StableMonth[]>("vw_stable_occupancy"),
+      dq: loadJson<DqCheck[]>("dq_summary"),
     })
       .then(setData)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
@@ -160,7 +164,9 @@ export default function App() {
       </nav>
 
       <main className="main">
-        <SeasonRibbon months={months} range={range} onRangeChange={setRange} />
+        {section.filterable ? (
+          <SeasonRibbon months={months} range={range} onRangeChange={setRange} />
+        ) : null}
         {section.id === "site" ? (
           <SitePlan
             plan={data.plan}
@@ -169,6 +175,7 @@ export default function App() {
             months={months}
             range={range}
             currency={meta.client.currency}
+            siteName={meta.client.site_name}
           />
         ) : section.id === "footfall" ? (
           <FootfallSales
@@ -207,6 +214,22 @@ export default function App() {
             months={months}
             range={range}
             currency={meta.client.currency}
+          />
+        ) : section.id === "quality" ? (
+          <Quality
+            checks={data.dq}
+            meta={meta}
+            data={{
+              days: data.days,
+              rent: data.rent,
+              compliance: data.compliance,
+              lessons: data.lessons,
+              instructors: data.instructors,
+              events: data.events,
+              channels: data.channelConversion,
+              mix: data.mix,
+              atv: data.atv,
+            }}
           />
         ) : (
           <SectionPlaceholder section={section} />

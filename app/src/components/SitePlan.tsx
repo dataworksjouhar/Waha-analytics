@@ -51,6 +51,9 @@ interface Props {
   months: MonthCell[];
   range: DateRange | null;
   currency: string;
+  /** the site's name, from config via meta.json. Passed in rather than
+   *  written here so a rebrand stays a YAML edit. */
+  siteName: string;
 }
 
 interface Hover {
@@ -61,7 +64,15 @@ interface Hover {
   meta: string;
 }
 
-export function SitePlan({ plan, tenantMetrics, gateFootfall, months, range, currency }: Props) {
+export function SitePlan({
+  plan,
+  tenantMetrics,
+  gateFootfall,
+  months,
+  range,
+  currency,
+  siteName,
+}: Props) {
   const [metricId, setMetricId] = useState(FILL_METRICS[0].id);
   const [hour, setHour] = useState<number>(HOURS_ALL);
   const [selected, setSelected] = useState<string | null>(null);
@@ -210,7 +221,7 @@ export function SitePlan({ plan, tenantMetrics, gateFootfall, months, range, cur
             className="plan__svg"
             viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
             role="img"
-            aria-label="Site plan of Al Waha Park"
+            aria-label={`Site plan of ${siteName}`}
           >
             <defs>
               {/* Vacant units are hatched, not coloured: a closed shop has
@@ -428,7 +439,7 @@ export function SitePlan({ plan, tenantMetrics, gateFootfall, months, range, cur
         </div>
 
         <p className="plan__caveat">
-          Stylised schematic of the fictional Al Waha Park: unit areas are true to the
+          Stylised schematic of the fictional {siteName}: unit areas are true to the
           leased square metres in the warehouse, positions are illustrative. Footfall is
           counted at the gates, not at shop doors, so this view cannot say who walked
           past an individual unit.

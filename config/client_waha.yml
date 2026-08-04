@@ -6,6 +6,12 @@
 
 client:
   name: "Al Waha Destination Co."
+  # The physical place, as distinct from the company that operates it. The
+  # site plan is a map of the site, so its caption needs this rather than
+  # the legal entity. Split out so a rebrand stays a config edit: without
+  # it the site name was hardcoded in two React components and the
+  # exporter, which quietly broke the one-template promise.
+  site_name: "Al Waha Park"
   short_name: waha
   currency: KWD
   timezone: Asia/Kuwait

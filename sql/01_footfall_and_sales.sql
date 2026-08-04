@@ -43,13 +43,62 @@ LEFT JOIN daily yr ON yr.full_date = (cur.full_date - INTERVAL '1 year')::date
 LEFT JOIN gold.dim_date_weather w ON w.date_key = cur.date_key
 ORDER BY cur.full_date;
 
+-- Footfall by entrance, date x zone grain. The counter vendor gives four
+-- physical sensors but the site has two entrances, so this rolls the
+-- sensors up to the thing a GM actually asks about. Reading it next to
+-- vw_footfall_daily is how "the Equestrian Gate held up through summer
+-- while the west strip collapsed" becomes visible, which is the whole
+-- point of the divergent seasonality curves in the config.
+CREATE OR REPLACE VIEW gold.vw_footfall_by_zone AS
+SELECT
+    f.date_key,
+    d.full_date,
+    d.season,
+    d.is_weekend,
+    d.is_ramadan,
+    g.zone,
+    g.gate_label,
+    g.primary_venue_served,
+    SUM(f.count_in) AS footfall,
+    bool_or(f.is_imputed)           AS has_imputed_hours,
+    bool_or(f.is_outlier_corrected) AS has_corrected_hours
+FROM gold.fact_footfall f
+JOIN gold.dim_gate g ON g.gate_key = f.gate_key
+JOIN gold.dim_date d ON d.date_key = f.date_key
+GROUP BY f.date_key, d.full_date, d.season, d.is_weekend, d.is_ramadan,
+         g.zone, g.gate_label, g.primary_venue_served
+ORDER BY d.full_date, g.zone;
+
 -- Metric 2: site-wide footfall against each own venue's revenue, the
 -- park-to-venue conversion the GM cannot currently see.
+--
+-- The headline denominator is deliberately SITE-WIDE, not per venue. One
+-- visitor entering the Main Gate may walk the tenant strip, then the Farm,
+-- then the gym on a single entry, so gate-to-venue is many to many and
+-- there is no honest way to say a given entry "belongs" to The Farm.
+-- Dividing venue revenue by the traffic that could plausibly have reached
+-- it is the defensible ratio, and it is what revenue_per_visitor_kwd is.
+--
+-- entrance_footfall is offered alongside it as the narrower denominator:
+-- the traffic through the entrance most of this venue's visitors actually
+-- use, via dim_venue.gate_proximity matching dim_gate.gate_label. It is a
+-- genuinely better figure for the Equestrian Centre, which has its own
+-- entrance and is the only venue in its zone. It is a WORSE figure for the
+-- Playground, Farm and gym, which all share the Main Gate and so all get
+-- the same denominator, none of which is really theirs. Both are exposed,
+-- named for what they are, so the dashboard can pick per venue rather than
+-- one being silently substituted for the other.
 CREATE OR REPLACE VIEW gold.vw_footfall_sales_conversion AS
 WITH daily_footfall AS (
     SELECT date_key, SUM(count_in) AS footfall
     FROM gold.fact_footfall
     GROUP BY date_key
+),
+entrance_footfall AS (
+    SELECT f.date_key, g.gate_label, SUM(f.count_in) AS footfall
+    FROM gold.fact_footfall f
+    JOIN gold.dim_gate g ON g.gate_key = f.gate_key
+    GROUP BY f.date_key, g.gate_label
 ),
 daily_sales AS (
     SELECT
@@ -60,6 +109,14 @@ daily_sales AS (
     FROM gold.fact_pos_sales
     GROUP BY date_key, venue_key
 )
+-- The five new columns are appended at the END of this list rather than
+-- sitting next to the figures they relate to, which would read better.
+-- Postgres CREATE OR REPLACE VIEW can only add columns after the existing
+-- ones: it refuses any change to the name or position of a column that is
+-- already there, because something downstream may be selecting by
+-- position. Appending is what keeps this file re-runnable against a live
+-- warehouse instead of needing a DROP VIEW, which would in turn break
+-- anything built on top of it.
 SELECT
     s.date_key,
     dd.full_date,
@@ -70,10 +127,18 @@ SELECT
     s.revenue_kwd,
     s.line_count,
     CASE WHEN f.footfall > 0 THEN s.revenue_kwd / f.footfall END AS revenue_per_visitor_kwd,
-    CASE WHEN f.footfall > 0 THEN s.line_count::numeric / f.footfall END AS conversion_rate
+    CASE WHEN f.footfall > 0 THEN s.line_count::numeric / f.footfall END AS conversion_rate,
+    v.zone,
+    v.gate_proximity,
+    ef.footfall AS entrance_footfall,
+    CASE WHEN ef.footfall > 0 THEN s.revenue_kwd / ef.footfall END AS revenue_per_entrance_visitor_kwd,
+    CASE WHEN ef.footfall > 0 THEN s.line_count::numeric / ef.footfall END AS entrance_conversion_rate
 FROM daily_sales s
 JOIN gold.dim_venue v ON v.venue_key = s.venue_key
 JOIN daily_footfall f ON f.date_key = s.date_key
+-- LEFT, not inner: a venue whose gate_proximity has no matching gate_label
+-- should lose its entrance figure, not vanish from metric 2 entirely.
+LEFT JOIN entrance_footfall ef ON ef.date_key = s.date_key AND ef.gate_label = v.gate_proximity
 JOIN gold.dim_date dd ON dd.date_key = s.date_key
 ORDER BY dd.full_date, v.venue_name;
 

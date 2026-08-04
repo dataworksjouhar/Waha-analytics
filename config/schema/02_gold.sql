@@ -263,3 +263,38 @@ CREATE TABLE IF NOT EXISTS gold.fact_lesson_slots (
 );
 
 CREATE INDEX IF NOT EXISTS ix_fact_lesson_slots_date ON gold.fact_lesson_slots (date_key);
+
+
+-- ---------------------------------------------------------------------
+-- Spatial metadata columns (added after the initial build)
+-- ---------------------------------------------------------------------
+--
+-- ALTER ... ADD COLUMN IF NOT EXISTS rather than editing the CREATE TABLE
+-- statements above, because every statement in this file is IF NOT EXISTS:
+-- a CREATE TABLE that already exists is skipped entirely, so a column added
+-- to its body would reach a fresh database and never reach this one. The
+-- ALTER runs either way, which is what makes deploy_schema safe to re-run
+-- against a warehouse that is already built.
+--
+-- Values are NOT set here. They come from the `spatial` section of
+-- config/client_waha.yml and are applied by the gold dimension loaders, so
+-- the layout of a client's site stays a config fact rather than DDL.
+
+-- Four physical counter sensors, two logical entrances. gate_label is the
+-- rollup; gate_name stays the sensor the source files are keyed to.
+-- primary_venue_served is null where a gate serves the whole site, which is
+-- a meaningful value here and not a gap.
+ALTER TABLE gold.dim_gate  ADD COLUMN IF NOT EXISTS gate_label           TEXT;
+ALTER TABLE gold.dim_gate  ADD COLUMN IF NOT EXISTS zone                 TEXT;
+ALTER TABLE gold.dim_gate  ADD COLUMN IF NOT EXISTS primary_venue_served TEXT;
+
+ALTER TABLE gold.dim_venue ADD COLUMN IF NOT EXISTS zone            TEXT;
+ALTER TABLE gold.dim_venue ADD COLUMN IF NOT EXISTS gate_proximity  TEXT;
+
+-- dim_tenant is SCD Type 2, so these columns repeat across a tenant's
+-- versions. That is correct rather than sloppy: a unit does not move when a
+-- tenant changes category, so the attribute is genuinely the same in every
+-- version. Zone belongs to the unit, and it is carried on the tenant row
+-- because unit_no already is.
+ALTER TABLE gold.dim_tenant ADD COLUMN IF NOT EXISTS zone            TEXT;
+ALTER TABLE gold.dim_tenant ADD COLUMN IF NOT EXISTS gate_proximity  TEXT;

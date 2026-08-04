@@ -209,6 +209,47 @@ def check_referential_integrity(conn) -> list[CheckResult]:
         status="pass" if n == 0 else "fail", expected_value="0", actual_value=str(n),
         details="stable_key must be set iff contract_type = horse_boarding",
     ))
+
+    # dim_gate.primary_venue_served holds a venue_id rather than a
+    # venue_key and carries no database FK, deliberately: the gold
+    # dimension loaders TRUNCATE ... CASCADE, so a constraint pointing at
+    # dim_venue would let a dim_venue rebuild take dim_gate's rows with it.
+    # The guarantee is enforced here instead. Null is valid and excluded on
+    # purpose: it means the gate serves the whole site (the Main Gate case),
+    # which is a real value, not a missing one.
+    n = _scalar(conn, """
+        SELECT COUNT(*) FROM gold.dim_gate g
+        WHERE g.primary_venue_served IS NOT NULL
+          AND NOT EXISTS (SELECT 1 FROM gold.dim_venue v WHERE v.venue_id = g.primary_venue_served)
+    """)
+    results.append(CheckResult(
+        check_name="dim_gate_primary_venue_served_valid",
+        check_type="referential_integrity", schema_name="gold", table_name="dim_gate",
+        status="pass" if n == 0 else "fail", expected_value="0", actual_value=str(n),
+        details="primary_venue_served -> gold.dim_venue.venue_id (null means serves whole site)",
+    ))
+
+    # The spatial columns come from config, not from a source file, and are
+    # reapplied after each dimension rebuild by
+    # pipeline/load/spatial_metadata.py. If that step is ever skipped or a
+    # new gate/venue/tenant appears in the warehouse without a matching
+    # config entry, the column goes quietly null and any zone breakdown
+    # silently loses rows. This check is what makes that loud.
+    for table, columns in [
+        ("gold.dim_gate", ["gate_label", "zone"]),
+        ("gold.dim_venue", ["zone", "gate_proximity"]),
+        ("gold.dim_tenant", ["zone", "gate_proximity"]),
+    ]:
+        predicate = " OR ".join(f"{col} IS NULL" for col in columns)
+        n = _scalar(conn, f"SELECT COUNT(*) FROM {table} WHERE {predicate}")
+        results.append(CheckResult(
+            check_name=f"{table.split('.')[-1]}_spatial_metadata_populated",
+            check_type="referential_integrity", schema_name="gold",
+            table_name=table.split(".")[-1],
+            status="pass" if n == 0 else "fail", expected_value="0", actual_value=str(n),
+            details=f"{', '.join(columns)} set from config spatial section",
+        ))
+
     return results
 
 

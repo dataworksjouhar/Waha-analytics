@@ -31,7 +31,7 @@
     "lesson_slot_utilization",
     "stable_occupancy_and_boarding_revenue"
   ],
-  "generated_at": "2026-08-04T10:41:12",
+  "generated_at": "2026-08-04T12:49:13",
   "row_counts": {
     "vw_footfall_daily": 731,
     "vw_footfall_sales_conversion": 2693,
@@ -48,6 +48,7 @@
     "vw_tenant_compliance": 11,
     "vw_tenant_site_metrics": 225,
     "vw_footfall_gate_hour_monthly": 1624,
+    "vw_footfall_by_zone": 1462,
     "dq_summary": 27,
     "site_plan": 10
   }

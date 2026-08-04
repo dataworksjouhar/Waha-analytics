@@ -527,6 +527,77 @@ metrics:
     - stable_occupancy_and_boarding_revenue
 
 # ---------------------------------------------------------------------
+# Spatial metadata: where things physically are, as dimension attributes.
+# ---------------------------------------------------------------------
+#
+# This is NOT the same thing as the site_plan section below. site_plan is
+# the drawing (pixel coordinates, for the map). This is warehouse metadata:
+# static descriptive attributes that hang off dim_gate, dim_venue and
+# dim_tenant so a query can group footfall or sales by zone without the
+# analyst knowing anything about the drawing. The two must agree with each
+# other, but they answer different questions and one can exist without the
+# other (a Power BI client gets these columns and no map at all).
+#
+# It lives in config rather than in the seed CSVs for the same reason the
+# seasonality curves do: a future client's site has different zones, and
+# that must be a YAML edit, not a code change. The gold dimension loaders
+# read this section and merge these columns in on every build, so a
+# pipeline rerun cannot silently drop them.
+#
+# GATES. The counter vendor gives us four physical sensors, but the site
+# has two logical entrances. gate_label is the rollup a business user
+# thinks in ("how many came through the Main Gate"); gate_name stays the
+# physical sensor, because two years of footfall files are keyed to it and
+# a sensor cannot be renamed without regenerating the source data. Keeping
+# both is the honest version: the grain of the fact is the sensor, and the
+# grain the GM asks questions at is the entrance.
+#
+# primary_venue_served is null for the Main Gate on purpose. A Main Gate
+# visitor may walk the tenant strip, then the Farm, then the gym on one
+# ticket, so attributing that entry to a single venue would be a fiction.
+# Null here means "serves the whole site", not "unknown", and any view
+# reading this column has to handle that rather than assume 1:1.
+#
+# Deliberately no foreign key from primary_venue_served to
+# dim_venue.venue_id, even though venue_id is unique and the FK would be
+# valid. The gold dimension loaders TRUNCATE ... CASCADE on every rebuild,
+# so an FK pointing at dim_venue would make a dim_venue reload silently
+# truncate dim_gate too. The referential guarantee is worth less than the
+# rebuild staying predictable, so it is enforced by a DQ check instead.
+spatial:
+  gates:
+    G01: { gate_label: "Main Gate",       zone: west_strip, primary_venue_served: null }
+    G02: { gate_label: "Main Gate",       zone: west_strip, primary_venue_served: null }
+    G03: { gate_label: "Equestrian Gate", zone: north_east, primary_venue_served: V04 }
+    G04: { gate_label: "Equestrian Gate", zone: north_east, primary_venue_served: V04 }
+
+  # Own-operated venues. gate_proximity is which entrance most visitors to
+  # this venue actually come through, which is a different claim from
+  # "which gate is nearest" and is the one worth modelling.
+  venues:
+    V01: { zone: south_east,       gate_proximity: "Main Gate" }        # The Playground
+    V02: { zone: west_strip_south, gate_proximity: "Main Gate" }        # The Farm
+    V03: { zone: north_centre,     gate_proximity: "Main Gate" }        # Pulse Gym
+    V04: { zone: north_east,       gate_proximity: "Equestrian Gate" }  # Equestrian Centre
+
+  # Leased units. All ten sit on the west strip today, so these entries are
+  # currently identical, and they are still listed one by one rather than
+  # collapsed to a default: a second terrace on the far side of the site is
+  # a normal thing for a destination to build, and when it happens this
+  # should be a line edit, not a rewrite of the loader.
+  tenants:
+    T01: { zone: west_strip, gate_proximity: "Main Gate" }
+    T02: { zone: west_strip, gate_proximity: "Main Gate" }
+    T03: { zone: west_strip, gate_proximity: "Main Gate" }
+    T04: { zone: west_strip, gate_proximity: "Main Gate" }
+    T05: { zone: west_strip, gate_proximity: "Main Gate" }
+    T06: { zone: west_strip, gate_proximity: "Main Gate" }
+    T07: { zone: west_strip, gate_proximity: "Main Gate" }
+    T08: { zone: west_strip, gate_proximity: "Main Gate" }
+    T09: { zone: west_strip, gate_proximity: "Main Gate" }
+    T10: { zone: west_strip, gate_proximity: "Main Gate" }
+
+# ---------------------------------------------------------------------
 # Site plan: the spatial layout of the park, for the dashboard map.
 # ---------------------------------------------------------------------
 #

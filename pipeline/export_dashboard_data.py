@@ -70,6 +70,10 @@ SUPPORTING_VIEWS = [
     "vw_tenant_compliance",
     "vw_tenant_site_metrics",
     "vw_footfall_gate_hour_monthly",
+    # Footfall split by entrance. Supports metric 1 (where the traffic
+    # went, not just how much) and metric 2 (the narrower per-entrance
+    # denominator), without either metric changing what it claims.
+    "vw_footfall_by_zone",
 ]
 
 

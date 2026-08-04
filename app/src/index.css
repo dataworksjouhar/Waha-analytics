@@ -1,0 +1,393 @@
+/* Design tokens for the whole dashboard. Every chart in sessions 4 to 7
+   reads these by role (--series-1, --season-peak) rather than raw hex, so
+   light and dark swap in one place.
+
+   The categorical slots and the season ramp are not hand-picked colours:
+   they were run through the dataviz palette validator, which checks
+   colour-blind separation, lightness banding, chroma and contrast against
+   the actual surface. The season ramp is a single-hue ORDINAL scale
+   (trough -> shoulder -> peak) because those three are ordered by trading
+   intensity, not three unrelated categories: darker reads as stronger
+   season without the reader needing the legend.
+
+   --brand is set at runtime from meta.json (config/client_waha.yml's
+   branding.primary_color), so rebranding for another client stays a YAML
+   edit. It is chrome only: it never encodes data, because a client whose
+   brand colour happens to be red must not end up with red meaning "good". */
+
+:root {
+  color-scheme: light;
+
+  --surface-1: #fcfcfb;
+  --page: #f9f9f7;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --gridline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.1);
+
+  /* categorical, fixed order, never cycled */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+
+  /* ordinal season ramp: light = weakest trading, dark = peak */
+  --season-trough: #86b6ef;
+  --season-shoulder: #2a78d6;
+  --season-peak: #104281;
+
+  /* status, reserved: never reused as a series colour */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --delta-good: #006300;
+
+  --brand: #0f4c81;
+
+  --radius: 8px;
+  --gap: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255, 255, 255, 0.1);
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    /* reversed: on a dark surface the weakest season is the step nearest
+       the surface, so trough is now the darkest of the three */
+    --season-trough: #184f95;
+    --season-shoulder: #3987e5;
+    --season-peak: #9ec5f4;
+
+    --delta-good: #0ca30c;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface-1: #1a1a19;
+  --page: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+  --gridline: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255, 255, 255, 0.1);
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  --season-trough: #184f95;
+  --season-shoulder: #3987e5;
+  --season-peak: #9ec5f4;
+
+  --delta-good: #0ca30c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.125rem;
+}
+h2 {
+  font-size: 1rem;
+}
+h3 {
+  font-size: 0.875rem;
+}
+
+/* ---------- layout shell ---------- */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.masthead__mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--brand);
+  flex: none;
+}
+
+.masthead__titles {
+  margin-right: auto;
+}
+
+.masthead__sub {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.nav__item {
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.nav__item:hover {
+  color: var(--text-primary);
+}
+
+.nav__item[aria-current="page"] {
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom-color: var(--brand);
+}
+
+.main {
+  flex: 1;
+  padding: 20px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.card__title {
+  margin-bottom: 4px;
+}
+
+.card__note {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.placeholder {
+  color: var(--text-secondary);
+  border: 1px dashed var(--baseline);
+  border-radius: var(--radius);
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.state {
+  padding: 32px 20px;
+  color: var(--text-secondary);
+}
+
+.state--error {
+  color: var(--status-critical);
+}
+
+/* ---------- season ribbon ----------
+   24 month bars that act as both the date filter and the argument: at this
+   business the season decides everything, so the filter states that up
+   front instead of hiding it behind a calendar picker. */
+
+.ribbon {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: var(--gap);
+}
+
+.ribbon__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.ribbon__range {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  margin-right: auto;
+}
+
+.ribbon__reset {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  padding: 3px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.ribbon__reset:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.ribbon__reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ribbon__months {
+  display: flex;
+  gap: 2px; /* the 2px surface gap between adjacent fills */
+  align-items: flex-end;
+}
+
+.ribbon__month {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  flex: 1 1 0;
+  min-width: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.ribbon__bar {
+  width: 100%;
+  height: 28px;
+  border-radius: 4px 4px 0 0; /* rounded data-end, anchored to the baseline */
+  background: var(--season-shoulder);
+  border-bottom: 2px solid var(--baseline);
+}
+
+.ribbon__month[data-season="summer_trough"] .ribbon__bar {
+  background: var(--season-trough);
+}
+.ribbon__month[data-season="shoulder"] .ribbon__bar {
+  background: var(--season-shoulder);
+}
+.ribbon__month[data-season="winter_peak"] .ribbon__bar {
+  background: var(--season-peak);
+}
+
+.ribbon__month[data-selected="false"] .ribbon__bar {
+  opacity: 0.25;
+}
+
+.ribbon__month:hover .ribbon__bar {
+  outline: 2px solid var(--surface-1);
+  outline-offset: -2px;
+}
+
+.ribbon__month:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.ribbon__label {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ribbon__legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.ribbon__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ribbon__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: none;
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 12px;
+  }
+  .ribbon__label {
+    display: none;
+  }
+}

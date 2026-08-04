@@ -157,6 +157,20 @@ client name come from config, nav links exist even if the pages are empty.
 
 **Commit:** `Phase 2 session 3: React app scaffold and config-driven shell`
 
+**The colour decision, worth being able to defend:** the season ribbon uses
+a single-hue ordinal ramp (light to dark = trough to shoulder to peak),
+not three unrelated colours. Peak, shoulder and trough are ordered by
+trading intensity, so darker reading as stronger season is information the
+reader gets without consulting the legend. The three steps were checked
+with a palette validator for lightness banding, step separation and
+contrast against the actual surface in both light and dark mode, rather
+than picked by eye. Dark mode reverses the ramp: on a dark surface the
+weakest season is the step nearest the surface.
+
+`--brand` (the client colour from config) is chrome only: masthead mark,
+active nav underline, focus rings. It never encodes data, because a client
+whose brand colour is red must not end up with red meaning "good".
+
 ---
 
 ## Session 4: Footfall and venue sales
@@ -261,7 +275,7 @@ pattern show up in the utilization view?
 |---|---|---|---|
 | 1 | SQL reporting views | yes | yes |
 | 2 | Static export script | yes | yes |
-| 3 | React scaffold | | |
+| 3 | React scaffold | yes | yes |
 | 4 | Footfall and venue sales | | |
 | 5 | Leasing and tenants | | |
 | 6 | Bookings and web | | |

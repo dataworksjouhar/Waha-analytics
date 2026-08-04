@@ -10,3 +10,4 @@ __pycache__/
 # build time, so the exported JSON has to be in the repo for it to build.
 app/node_modules/
 app/dist/
+app/tsconfig.tsbuildinfo

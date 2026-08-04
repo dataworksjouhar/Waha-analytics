@@ -8,11 +8,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FootfallSales } from "./components/FootfallSales";
+import { Leasing } from "./components/Leasing";
 import { SeasonRibbon } from "./components/SeasonRibbon";
 import { SectionPlaceholder } from "./components/SectionPlaceholder";
 import { SitePlan } from "./components/SitePlan";
 import { loadAll, loadJson, type FootfallDay, type Meta } from "./lib/data";
 import type { EventRoi, VenueAtv, VenueConversion, ZoneFootfall } from "./lib/footfall";
+import type { TenantCompliance, TenantRentMonth, TenantSqmMonth } from "./lib/leasing";
 import { deriveMonths, type DateRange } from "./lib/months";
 import type { GateHourFootfall, SitePlanData, TenantSiteMetric } from "./lib/sitePlan";
 import { SECTIONS } from "./sections";
@@ -31,6 +33,9 @@ interface Bundle {
   events: EventRoi[];
   atv: VenueAtv[];
   zones: ZoneFootfall[];
+  rent: TenantRentMonth[];
+  perSqm: TenantSqmMonth[];
+  compliance: TenantCompliance[];
 }
 
 export default function App() {
@@ -54,6 +59,9 @@ export default function App() {
       events: loadJson<EventRoi[]>("vw_event_roi"),
       atv: loadJson<VenueAtv[]>("vw_avg_transaction_value"),
       zones: loadJson<ZoneFootfall[]>("vw_footfall_by_zone"),
+      rent: loadJson<TenantRentMonth[]>("vw_tenant_turnover_rent"),
+      perSqm: loadJson<TenantSqmMonth[]>("vw_tenant_sales_per_sqm"),
+      compliance: loadJson<TenantCompliance[]>("vw_tenant_compliance"),
     })
       .then(setData)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
@@ -139,6 +147,15 @@ export default function App() {
             events={data.events}
             atv={data.atv}
             zones={data.zones}
+            range={range}
+            currency={meta.client.currency}
+          />
+        ) : section.id === "leasing" ? (
+          <Leasing
+            rent={data.rent}
+            perSqm={data.perSqm}
+            compliance={data.compliance}
+            days={data.days}
             range={range}
             currency={meta.client.currency}
           />

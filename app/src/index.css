@@ -1021,6 +1021,101 @@ h3 {
   opacity: 0.08;
 }
 
+/* A benchmark the bars are read against, not a series. Dashed and in
+   muted ink so it reads as furniture rather than as an eleventh tenant. */
+.chart__rule {
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+/* Status fills. Reserved for state, never for a categorical slot, so red
+   means the same thing everywhere in the dashboard. Always accompanied by
+   a label or a second cue: colour alone is never the carrier. */
+.chart__bar[data-status="critical"] { fill: var(--status-critical); }
+.chart__swatch[data-status="critical"] { background: var(--status-critical); }
+
+.chart__swatch--rule {
+  height: 0;
+  border-radius: 0;
+  border-top: 2px dashed var(--text-secondary);
+  background: none;
+}
+
+.chart__swatch--dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* The gap-to-benchmark that trails a bar's value. Muted so the absolute
+   figure stays the primary read and the comparison sits behind it. */
+.chart__bar-delta {
+  fill: var(--text-muted);
+}
+
+/* Average-to-worst connector in the compliance chart. Thinner than a
+   series line: it encodes a span, not a trend. */
+.chart__range {
+  stroke: var(--series-1);
+  stroke-width: 2;
+  opacity: 0.45;
+  stroke-linecap: round;
+}
+
+/* The worst-submission end of that span. Hollow so the filled dot at the
+   average stays the thing the eye lands on. */
+.chart__marker--hollow {
+  fill: var(--surface-1);
+  stroke: var(--series-1);
+  stroke-width: 2;
+}
+
+/* A caveat that belongs to the metric rather than to the chart: printed,
+   not tucked into a tooltip, because a limitation nobody reads is a
+   limitation nobody honoured. */
+.chart__note--caveat {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--status-warning);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: color-mix(in srgb, var(--status-warning) 8%, transparent);
+  color: var(--text-secondary);
+}
+
+/* ---------- findings ---------- */
+
+/* Plain-language conclusions sitting next to the chart that supports
+   them. The dashboard's job is not to render the data and leave; a
+   finding a reader has to derive themselves is one most readers will
+   miss. */
+.finding {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--status-critical);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: color-mix(in srgb, var(--status-critical) 5%, transparent);
+}
+
+.finding__title {
+  margin: 0 0 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.finding__body {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.finding__body:last-child {
+  margin-bottom: 0;
+}
+
 /* ---------- table view ---------- */
 
 .tableview {

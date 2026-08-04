@@ -341,7 +341,7 @@ pattern show up in the utilization view?
 | 3 | React scaffold | yes | yes |
 | 4 | Site plan | yes | yes |
 | 5 | Footfall and venue sales | yes | yes |
-| 6 | Leasing and tenants | | |
+| 6 | Leasing and tenants | yes | yes |
 | 7 | Bookings and web | | |
 | 8 | Membership and equestrian | | |
 | 9 | Trust, polish, deploy | | |

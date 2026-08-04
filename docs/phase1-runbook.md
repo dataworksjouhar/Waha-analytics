@@ -278,8 +278,9 @@ The heaviest work, split across two sessions. This is what interviewers probe ha
 - [x] Both are idempotent and reproducible (re-run confirmed: bronze extract
       skipped all 4,674 already-registered files on checksum match, silver/gold
       rebuilt with identical row counts)
-- [ ] You can answer three business questions in plain SQL from gold - **your
-      exam, unaided, see session 12 below. Not done for you on purpose.**
+- [x] You can answer three business questions in plain SQL from gold - **exam
+      passed: schemas dropped and rebuilt from empty via generator + pipeline,
+      then three §2.2 questions answered unaided in SQL against gold.**
 - [ ] You can explain every file without notes
 - [x] README reads well to a stranger
 - [x] Git history tells the story session by session
@@ -303,7 +304,7 @@ Then update the analytics-venture skill file with Phase 1 status, and move to Ph
 | 9 | Silver, messy sources | yes | yes |
 | 10 | Gold dimensions, SCD2 | yes | yes |
 | 11 | Gold facts | yes | yes |
-| 12 | DQ, orchestrator, validation | yes | |
+| 12 | DQ, orchestrator, validation | yes | yes |
 
 ---
 

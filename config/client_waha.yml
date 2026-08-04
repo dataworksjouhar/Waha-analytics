@@ -632,29 +632,38 @@ site_plan:
   # only four and they are not proportional to anything in the data, unlike
   # the tenant plots.
   #
-  # Zoning is owner-provided, describing how destinations of this kind are
-  # actually laid out in Kuwait, moving west to east:
-  #   west strip   - the leased retail, cafes and shops, running north to
-  #                  south along the western boundary between the two
-  #                  western gates
-  #   farm zone    - just inside the west strip, as you move inward
-  #   central zone - the large open leisure area
-  #   east zone    - arena, show venue and sports facilities
+  # Zoning is owner-provided and must agree with the `spatial` section
+  # above: dim_venue.zone is what a query groups by, these rectangles are
+  # what a reader sees, and the two describing different sites would be a
+  # quietly wrong dashboard. Read them together.
+  #
+  #   west strip        - the leased retail, cafes and shops, running south
+  #                       from the Main Gate down the western boundary
+  #   west strip south  - the Farm, immediately where the tenant units end
+  #   north centre      - the building cluster holding Pulse Gym
+  #   north east        - the equestrian centre, on its own gate
+  #   south east        - the Playground and the courts beside it
+  #
+  # The large central area is left deliberately empty. On the real site
+  # that inspired this it is a golf course and a racetrack, neither of
+  # which Al Waha operates or has data for, and drawing a venue there would
+  # imply a revenue line that does not exist.
+  #
   # This is a layout PRINCIPLE, not a traced survey of any real operator's
   # site. Al Waha is fictional and must stay that way.
   venues:
     - venue_id: V02
       label: The Farm
-      rect: [265, 130, 175, 320]   # x, y, width, height
-    - venue_id: V01
-      label: The Playground
-      rect: [500, 130, 310, 400]
+      rect: [55, 470, 170, 140]    # x, y, width, height; below the strip
     - venue_id: V03
       label: Pulse Gym
-      rect: [860, 130, 270, 160]
+      rect: [430, 90, 230, 130]
     - venue_id: V04
       label: Equestrian Centre
-      rect: [860, 330, 270, 215]
+      rect: [880, 90, 250, 230]
+    - venue_id: V01
+      label: The Playground
+      rect: [820, 420, 310, 190]
 
   # Leased units, laid out along terraces. Order within a terrace is the
   # order units appear on the ground, which is why the unit numbering runs
@@ -676,27 +685,31 @@ site_plan:
   # Gate positions. Names are fixed upstream: they are baked into two years
   # of generated footfall files and into the alias table in
   # pipeline/transform/footfall.py, so a gate cannot be renamed without
-  # regenerating the source data. Positions therefore honour both the real
-  # site's topology and the names the warehouse already uses: the two
-  # western gates bracket the retail strip north and south, and the two
-  # eastern gates sit on the north-east and south-east corners.
+  # regenerating the source data. The map therefore draws four sensors
+  # while the site has two entrances, which is the same split dim_gate
+  # models with gate_name and gate_label (see the `spatial` section).
+  #
+  # Placement follows that rollup: the two Main Gate sensors sit on the
+  # north-west, at the head of the retail strip that runs south from them,
+  # and the two Equestrian Gate sensors sit on the eastern boundary beside
+  # the equestrian centre they serve.
   gates:
-    - gate_id: G02
-      at: [75, 50]
+    - gate_id: G01              # Main Gate, primary, top-left corner
+      at: [75, 60]
       label_side: above
-    - gate_id: G01
-      at: [75, 590]
-      label_side: below
-    - gate_id: G03
-      at: [1145, 55]
-      label_side: below
-    - gate_id: G04
-      at: [1145, 600]
+    - gate_id: G02              # second Main Gate sensor, along the north edge
+      at: [300, 60]
       label_side: above
+    - gate_id: G03              # Equestrian Gate, top-right corner
+      at: [1145, 60]
+      label_side: below
+    - gate_id: G04              # second Equestrian Gate sensor, east boundary
+      at: [1145, 300]
+      label_side: below
 
-  # Decorative only: the pedestrian spine along the south of the site,
-  # linking the main gate at the foot of the retail strip to the south-east
-  # corner. Deliberately a single open path rather than a loop, since a
-  # closed route reads as a zone boundary rather than a walkway. Carries
-  # no data.
-  promenade: [[75, 570], [400, 575], [830, 578], [1120, 580]]
+  # Decorative only: the internal road running south from the Main Gate
+  # along the inside of the tenant strip, then east across the south of the
+  # site to the Playground. Deliberately a single open path rather than a
+  # loop, since a closed route reads as a zone boundary rather than a
+  # walkway. Carries no data.
+  promenade: [[250, 90], [250, 480], [430, 615], [830, 618], [1120, 605]]

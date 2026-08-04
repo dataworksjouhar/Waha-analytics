@@ -7,40 +7,55 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { FootfallSales } from "./components/FootfallSales";
 import { SeasonRibbon } from "./components/SeasonRibbon";
 import { SectionPlaceholder } from "./components/SectionPlaceholder";
 import { SitePlan } from "./components/SitePlan";
-import { loadJson, type FootfallDay, type Meta } from "./lib/data";
+import { loadAll, loadJson, type FootfallDay, type Meta } from "./lib/data";
+import type { EventRoi, VenueAtv, VenueConversion, ZoneFootfall } from "./lib/footfall";
 import { deriveMonths, type DateRange } from "./lib/months";
 import type { GateHourFootfall, SitePlanData, TenantSiteMetric } from "./lib/sitePlan";
 import { SECTIONS } from "./sections";
 
+/** Everything the dashboard reads, loaded in one pass. Held as a single
+ *  object rather than one useState per file so the render either has all
+ *  of it or none: a partially-arrived dashboard would flash charts in one
+ *  at a time and shift the layout under the reader. */
+interface Bundle {
+  meta: Meta;
+  days: FootfallDay[];
+  plan: SitePlanData;
+  tenantMetrics: TenantSiteMetric[];
+  gateFootfall: GateHourFootfall[];
+  conversion: VenueConversion[];
+  events: EventRoi[];
+  atv: VenueAtv[];
+  zones: ZoneFootfall[];
+}
+
 export default function App() {
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [days, setDays] = useState<FootfallDay[] | null>(null);
-  const [plan, setPlan] = useState<SitePlanData | null>(null);
-  const [tenantMetrics, setTenantMetrics] = useState<TenantSiteMetric[] | null>(null);
-  const [gateFootfall, setGateFootfall] = useState<GateHourFootfall[] | null>(null);
+  const [data, setData] = useState<Bundle | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [range, setRange] = useState<DateRange | null>(null);
   const [sectionId, setSectionId] = useState(SECTIONS[0].id);
 
   useEffect(() => {
-    Promise.all([
-      loadJson<Meta>("meta"),
-      loadJson<FootfallDay[]>("vw_footfall_daily"),
-      loadJson<SitePlanData>("site_plan"),
-      loadJson<TenantSiteMetric[]>("vw_tenant_site_metrics"),
-      loadJson<GateHourFootfall[]>("vw_footfall_gate_hour_monthly"),
-    ])
-      .then(([loadedMeta, loadedDays, loadedPlan, loadedTenants, loadedGates]) => {
-        setMeta(loadedMeta);
-        setDays(loadedDays);
-        setPlan(loadedPlan);
-        setTenantMetrics(loadedTenants);
-        setGateFootfall(loadedGates);
-      })
+    /* Each Bundle field is named alongside the export it comes from, so
+     * the pairing is checked by the compiler rather than by counting
+     * positions. See loadAll in lib/data.ts for why. */
+    loadAll({
+      meta: loadJson<Meta>("meta"),
+      days: loadJson<FootfallDay[]>("vw_footfall_daily"),
+      plan: loadJson<SitePlanData>("site_plan"),
+      tenantMetrics: loadJson<TenantSiteMetric[]>("vw_tenant_site_metrics"),
+      gateFootfall: loadJson<GateHourFootfall[]>("vw_footfall_gate_hour_monthly"),
+      conversion: loadJson<VenueConversion[]>("vw_footfall_sales_conversion"),
+      events: loadJson<EventRoi[]>("vw_event_roi"),
+      atv: loadJson<VenueAtv[]>("vw_avg_transaction_value"),
+      zones: loadJson<ZoneFootfall[]>("vw_footfall_by_zone"),
+    })
+      .then(setData)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
 
@@ -49,15 +64,15 @@ export default function App() {
   // arrives from config via meta.json; it is never written into a
   // stylesheet or a component.
   useEffect(() => {
-    if (meta?.branding.primary_color) {
-      document.documentElement.style.setProperty("--brand", meta.branding.primary_color);
+    if (data?.meta.branding.primary_color) {
+      document.documentElement.style.setProperty("--brand", data.meta.branding.primary_color);
     }
-    if (meta) {
-      document.title = `${meta.client.name} - Analytics`;
+    if (data) {
+      document.title = `${data.meta.client.name} - Analytics`;
     }
-  }, [meta]);
+  }, [data]);
 
-  const months = useMemo(() => (days ? deriveMonths(days) : []), [days]);
+  const months = useMemo(() => (data ? deriveMonths(data.days) : []), [data]);
   const section = SECTIONS.find((s) => s.id === sectionId) ?? SECTIONS[0];
 
   if (error) {
@@ -73,9 +88,11 @@ export default function App() {
     );
   }
 
-  if (!meta || !days || !plan || !tenantMetrics || !gateFootfall) {
+  if (!data) {
     return <div className="state">Loading...</div>;
   }
+
+  const { meta } = data;
 
   return (
     <div className="app">
@@ -108,10 +125,20 @@ export default function App() {
         <SeasonRibbon months={months} range={range} onRangeChange={setRange} />
         {section.id === "site" ? (
           <SitePlan
-            plan={plan}
-            tenantMetrics={tenantMetrics}
-            gateFootfall={gateFootfall}
+            plan={data.plan}
+            tenantMetrics={data.tenantMetrics}
+            gateFootfall={data.gateFootfall}
             months={months}
+            range={range}
+            currency={meta.client.currency}
+          />
+        ) : section.id === "footfall" ? (
+          <FootfallSales
+            days={data.days}
+            conversion={data.conversion}
+            events={data.events}
+            atv={data.atv}
+            zones={data.zones}
             range={range}
             currency={meta.client.currency}
           />

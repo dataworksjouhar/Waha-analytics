@@ -340,7 +340,7 @@ pattern show up in the utilization view?
 | 2 | Static export script | yes | yes |
 | 3 | React scaffold | yes | yes |
 | 4 | Site plan | yes | yes |
-| 5 | Footfall and venue sales | | |
+| 5 | Footfall and venue sales | yes | yes |
 | 6 | Leasing and tenants | | |
 | 7 | Bookings and web | | |
 | 8 | Membership and equestrian | | |

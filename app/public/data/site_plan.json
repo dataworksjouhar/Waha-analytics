@@ -163,34 +163,22 @@
       "venue_id": "V02",
       "label": "The Farm",
       "rect": [
-        265,
-        130,
-        175,
-        320
+        55,
+        470,
+        170,
+        140
       ],
       "venue_name": "The Farm",
       "venue_type": "petting_zoo"
     },
     {
-      "venue_id": "V01",
-      "label": "The Playground",
-      "rect": [
-        500,
-        130,
-        310,
-        400
-      ],
-      "venue_name": "The Playground",
-      "venue_type": "family_entertainment"
-    },
-    {
       "venue_id": "V03",
       "label": "Pulse Gym",
       "rect": [
-        860,
-        130,
-        270,
-        160
+        430,
+        90,
+        230,
+        130
       ],
       "venue_name": "Pulse Gym",
       "venue_type": "fitness"
@@ -199,41 +187,53 @@
       "venue_id": "V04",
       "label": "Equestrian Centre",
       "rect": [
-        860,
-        330,
-        270,
-        215
+        880,
+        90,
+        250,
+        230
       ],
       "venue_name": "Al Waha Equestrian Centre",
       "venue_type": "equestrian"
+    },
+    {
+      "venue_id": "V01",
+      "label": "The Playground",
+      "rect": [
+        820,
+        420,
+        310,
+        190
+      ],
+      "venue_name": "The Playground",
+      "venue_type": "family_entertainment"
     }
   ],
   "gates": [
     {
-      "gate_id": "G02",
+      "gate_id": "G01",
       "at": [
         75,
-        50
+        60
+      ],
+      "label_side": "above",
+      "gate_name": "Main Gate",
+      "description": "Primary pedestrian entrance from car park"
+    },
+    {
+      "gate_id": "G02",
+      "at": [
+        300,
+        60
       ],
       "label_side": "above",
       "gate_name": "North Gate",
       "description": "Secondary entrance near Playground and Farm"
     },
     {
-      "gate_id": "G01",
-      "at": [
-        75,
-        590
-      ],
-      "label_side": "below",
-      "gate_name": "Main Gate",
-      "description": "Primary pedestrian entrance from car park"
-    },
-    {
       "gate_id": "G03",
       "at": [
         1145,
-        55
+        60
       ],
       "label_side": "below",
       "gate_name": "Equestrian Gate",
@@ -243,29 +243,33 @@
       "gate_id": "G04",
       "at": [
         1145,
-        600
+        300
       ],
-      "label_side": "above",
+      "label_side": "below",
       "gate_name": "East Gate",
       "description": "Entrance near F&B tenant cluster"
     }
   ],
   "promenade": [
     [
-      75,
-      570
+      250,
+      90
     ],
     [
-      400,
-      575
+      250,
+      480
+    ],
+    [
+      430,
+      615
     ],
     [
       830,
-      578
+      618
     ],
     [
       1120,
-      580
+      605
     ]
   ]
 }

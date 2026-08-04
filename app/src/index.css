@@ -735,3 +735,350 @@ h3 {
     margin-left: 0;
   }
 }
+
+/* ---------- stat tiles ---------- */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--gap);
+  margin: 20px 0 24px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.tile__label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Proportional figures, not tabular: at this size equal-width digits make
+   a number like 121 look loose. tabular-nums belongs in table columns,
+   which is where the table view uses it. */
+.tile__value {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tile__value--hero {
+  font-size: 2.25rem;
+  line-height: 1.1;
+}
+
+/* Direction is carried by an arrow as well as a colour, so the meaning
+   survives colour-vision deficiency and greyscale print. */
+.tile__value[data-direction="up"]::after {
+  content: " \2191";
+  color: var(--delta-good);
+}
+
+.tile__value[data-direction="down"]::after {
+  content: " \2193";
+  color: var(--status-critical);
+}
+
+.tile__meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ---------- charts ---------- */
+
+.chart {
+  margin-top: 8px;
+}
+
+.chart__figure {
+  position: relative;
+  margin: 4px 0 8px;
+}
+
+.chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart__svg:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+}
+
+/* Gridlines and axes are solid hairlines one step off the surface. Never
+   dashed: dashing reads as "projection" or "threshold" when it is only a
+   grid. */
+.chart__grid {
+  stroke: var(--gridline);
+  stroke-width: 1;
+}
+
+.chart__axis {
+  stroke: var(--baseline);
+  stroke-width: 1;
+}
+
+.chart__tick {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__panel-title {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.chart__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart__marker {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+
+/* Series colour is set by slot, never by rank, so filtering the data
+   cannot repaint a series the reader has already learned. */
+.chart__line[data-series="1"],
+.chart__marker[data-series="1"] { stroke: var(--series-1); }
+.chart__line[data-series="2"] { stroke: var(--series-2); }
+.chart__line[data-series="4"],
+.chart__marker[data-series="4"] { stroke: var(--series-4); }
+.chart__marker[data-series="1"] { fill: var(--series-1); }
+.chart__marker[data-series="4"] { fill: var(--series-4); }
+
+.chart__bar[data-series="1"] { fill: var(--series-1); }
+.chart__bar[data-series="2"] { fill: var(--series-2); }
+.chart__bar[data-series="8"] { fill: var(--series-8); }
+
+.chart__bar {
+  transition: opacity 120ms ease;
+}
+
+.chart__bar[data-dim="true"] {
+  opacity: 0.35;
+}
+
+.chart__band {
+  fill: var(--text-muted);
+  opacity: 0.28;
+}
+
+.chart__hit {
+  fill: transparent;
+}
+
+.chart__row-label {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.chart__row-label--sm {
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.chart__row-label[data-flagged="true"] {
+  fill: var(--status-critical);
+  font-weight: 600;
+}
+
+.chart__row-sub {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Values sit in text ink beside the coloured mark, never in the series
+   colour: a light categorical hue is illegible as text on the surface,
+   and identity is already carried by the bar next to it. */
+.chart__bar-label {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__annotation {
+  fill: var(--text-secondary);
+  font-size: 11px;
+}
+
+.chart__nodata {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.chart__cursor line {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.chart__cursor circle {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+
+.chart__cursor circle[data-series="1"] { fill: var(--series-1); }
+.chart__cursor circle[data-series="4"] { fill: var(--series-4); }
+
+.chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.chart__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.chart__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--gridline);
+}
+
+.chart__swatch--line {
+  height: 3px;
+  border-radius: 2px;
+}
+
+.chart__swatch--band {
+  background: var(--text-muted);
+  opacity: 0.35;
+}
+
+.chart__swatch[data-series="1"] { background: var(--series-1); }
+.chart__swatch[data-series="2"] { background: var(--series-2); }
+.chart__swatch[data-series="4"] { background: var(--series-4); }
+.chart__swatch[data-series="8"] { background: var(--series-8); }
+
+.chart__tooltip {
+  position: absolute;
+  top: 8px;
+  z-index: 2;
+  min-width: 170px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.chart__tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__tooltip-meta {
+  margin-top: 4px;
+  color: var(--text-muted);
+}
+
+.chart__note {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.chart__empty {
+  padding: 24px 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+/* The hovered row's backing band. An SVG rect with no fill declared
+   paints solid black, so this rule is load-bearing rather than cosmetic:
+   without it every row-hover chart flashes a black bar. Kept very low
+   contrast because it is orientation, not emphasis. */
+.chart__row-band {
+  fill: var(--text-muted);
+  opacity: 0.08;
+}
+
+/* ---------- table view ---------- */
+
+.tableview {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.tableview__summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.tableview__caption {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* The table scrolls inside its own box. A wide table must never make the
+   page scroll sideways. */
+.tableview__scroll {
+  max-height: 340px;
+  overflow: auto;
+  margin-top: 8px;
+}
+
+.tableview__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tableview__table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tableview__table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--gridline);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .tile__value--hero {
+    font-size: 1.75rem;
+  }
+}

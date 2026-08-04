@@ -21,6 +21,33 @@ export async function loadJson<T>(name: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+/** Awaits an object of promises and gives back an object of their results,
+ *  keys and types intact.
+ *
+ *  Promise.all takes a positional tuple, and the dashboard loads a file
+ *  per reporting view, with more arriving each session. Reassembling that
+ *  many results by position is a bug waiting for the next file to be
+ *  inserted in the middle: every export is an array of objects, so a
+ *  mis-ordered pair type-checks happily and only fails once it is on
+ *  screen. Keying the load makes that mistake a compile error instead.
+ *
+ *  Object.keys and Object.values walk string keys in the same insertion
+ *  order, which is what makes the zip below safe. That is specified
+ *  behaviour, not an implementation detail to hope about. */
+export async function loadAll<T extends Record<string, Promise<unknown>>>(
+  sources: T,
+): Promise<{ [K in keyof T]: Awaited<T[K]> }> {
+  // The promises are already running: building `sources` started every
+  // fetch. This only waits, so the files still load in parallel.
+  const keys = Object.keys(sources) as (keyof T)[];
+  const settled = await Promise.all(Object.values(sources));
+  const result = {} as { [K in keyof T]: Awaited<T[K]> };
+  keys.forEach((key, index) => {
+    result[key] = settled[index] as Awaited<T[typeof key]>;
+  });
+  return result;
+}
+
 /** meta.json: client identity and branding, sourced from config/client_waha.yml. */
 export interface Meta {
   client: {

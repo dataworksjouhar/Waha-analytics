@@ -281,6 +281,27 @@ section 8) stand out against category peers?
 **Verify:** does the planted collapsing-conversion paid-social channel show
 up?
 
+**Not with the session 1 views, it did not.** Both are whole-history
+aggregates with no date column, and a collapse is a shape over time. The
+headline rate said paid_social converts worse than organic, which is a
+different and much weaker claim than paid_social is getting worse while
+everything else improves. Session 7 therefore added
+`gold.vw_web_channel_conversion_monthly` alongside the existing view
+rather than replacing it: the aggregate is still the right denominator
+for "what did this channel deliver", and summing the monthly rows to get
+it back would invite someone to average twenty-four monthly percentages,
+which is not the same number.
+
+`vw_ticket_channel_mix` also gained `venue_key` and `venue_name` for
+metric 5. The booking website sells one ticket per venue while the till
+sells adult, child and family, so at SKU grain the online share is an
+artifact of the crosswalk in `pipeline/load/fact_bookings.py`. Venue plus
+category is where the two channels are comparable.
+
+Worth remembering as a pattern rather than a one-off: a reporting view
+that answers a metric's wording can still fail the question behind it.
+Check what grain the insight needs before building the chart.
+
 **Commit:** `Phase 2 session 7: bookings and web channel dashboard section`
 
 ---
@@ -342,7 +363,7 @@ pattern show up in the utilization view?
 | 4 | Site plan | yes | yes |
 | 5 | Footfall and venue sales | yes | yes |
 | 6 | Leasing and tenants | yes | yes |
-| 7 | Bookings and web | | |
+| 7 | Bookings and web | yes | yes |
 | 8 | Membership and equestrian | | |
 | 9 | Trust, polish, deploy | | |
 

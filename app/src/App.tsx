@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FootfallSales } from "./components/FootfallSales";
 import { Leasing } from "./components/Leasing";
+import { Online } from "./components/Online";
 import { SeasonRibbon } from "./components/SeasonRibbon";
 import { SectionPlaceholder } from "./components/SectionPlaceholder";
 import { SitePlan } from "./components/SitePlan";
@@ -16,6 +17,11 @@ import { loadAll, loadJson, type FootfallDay, type Meta } from "./lib/data";
 import type { EventRoi, VenueAtv, VenueConversion, ZoneFootfall } from "./lib/footfall";
 import type { TenantCompliance, TenantRentMonth, TenantSqmMonth } from "./lib/leasing";
 import { deriveMonths, type DateRange } from "./lib/months";
+import type {
+  ChannelConversion,
+  ChannelConversionMonth,
+  TicketChannelMix,
+} from "./lib/online";
 import type { GateHourFootfall, SitePlanData, TenantSiteMetric } from "./lib/sitePlan";
 import { SECTIONS } from "./sections";
 
@@ -36,6 +42,9 @@ interface Bundle {
   rent: TenantRentMonth[];
   perSqm: TenantSqmMonth[];
   compliance: TenantCompliance[];
+  mix: TicketChannelMix[];
+  channelConversion: ChannelConversion[];
+  channelMonthly: ChannelConversionMonth[];
 }
 
 export default function App() {
@@ -62,6 +71,9 @@ export default function App() {
       rent: loadJson<TenantRentMonth[]>("vw_tenant_turnover_rent"),
       perSqm: loadJson<TenantSqmMonth[]>("vw_tenant_sales_per_sqm"),
       compliance: loadJson<TenantCompliance[]>("vw_tenant_compliance"),
+      mix: loadJson<TicketChannelMix[]>("vw_ticket_channel_mix"),
+      channelConversion: loadJson<ChannelConversion[]>("vw_web_channel_conversion"),
+      channelMonthly: loadJson<ChannelConversionMonth[]>("vw_web_channel_conversion_monthly"),
     })
       .then(setData)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
@@ -156,6 +168,14 @@ export default function App() {
             perSqm={data.perSqm}
             compliance={data.compliance}
             days={data.days}
+            range={range}
+            currency={meta.client.currency}
+          />
+        ) : section.id === "online" ? (
+          <Online
+            mix={data.mix}
+            conversion={data.channelConversion}
+            monthly={data.channelMonthly}
             range={range}
             currency={meta.client.currency}
           />

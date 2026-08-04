@@ -74,6 +74,11 @@ SUPPORTING_VIEWS = [
     # went, not just how much) and metric 2 (the narrower per-entrance
     # denominator), without either metric changing what it claims.
     "vw_footfall_by_zone",
+    # Metric 6 by month. The headline view averages the time dimension
+    # away, which hides a channel whose conversion is decaying while its
+    # volume holds up. Supporting rather than a metric of its own: it
+    # answers the same question at a grain that can show a trend.
+    "vw_web_channel_conversion_monthly",
 ]
 
 
@@ -81,10 +86,20 @@ def deploy_views(engine: sqlalchemy.engine.Engine) -> list[str]:
     """Applies sql/*.sql in filename order. Every statement is CREATE OR
     REPLACE VIEW, so re-running is always safe.
 
-    Uses exec_driver_sql, not sqlalchemy.text(), because the views contain
-    Postgres cast syntax (`::date`). text() parses `:name` as a bind
-    parameter placeholder and would read `::date` as one, failing on a
-    missing parameter. exec_driver_sql hands the SQL to psycopg2 untouched.
+    Not sqlalchemy.text(): the views contain Postgres cast syntax
+    (`::date`), and text() parses `:name` as a bind parameter placeholder,
+    so it would read `::date` as one and fail on a missing parameter.
+
+    Not exec_driver_sql either, which was the previous approach and had
+    the mirror-image bug one level down. SQLAlchemy hands psycopg2 an
+    empty parameter dict, and psycopg2 only skips its own `%`
+    interpolation when no parameters are passed at all. Any `%` in the
+    SQL therefore became a broken format placeholder: a `LIKE '%x%'` in a
+    future view, or (how this was found) a percent sign inside a comment.
+
+    So we drop to the driver cursor and execute with the statement as its
+    only argument, which is the documented way to tell psycopg2 that the
+    SQL is literal and there is nothing to interpolate.
     """
     applied = []
     for sql_file in sorted(SQL_DIR.glob("*.sql")):
@@ -92,7 +107,11 @@ def deploy_views(engine: sqlalchemy.engine.Engine) -> list[str]:
 
         def _apply(sql_text=sql_text):
             with engine.begin() as conn:
-                conn.exec_driver_sql(sql_text)
+                cursor = conn.connection.cursor()
+                try:
+                    cursor.execute(sql_text)
+                finally:
+                    cursor.close()
 
         with_retries(_apply)
         applied.append(sql_file.name)

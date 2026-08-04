@@ -1083,6 +1083,45 @@ h3 {
   color: var(--text-secondary);
 }
 
+/* Direct label at the end of a line. Carries the series identity as text
+   so a reader who cannot separate two hues never has to: the label is the
+   primary cue and the colour agrees with it. */
+.chart__end-label {
+  font-size: 11px;
+  font-weight: 500;
+  fill: var(--text-secondary);
+}
+
+/* Label sitting inside a filled bar segment. White rather than a text
+   token because it is on the fill, not on the surface, and only ever
+   rendered when the segment is wide enough to contain it. */
+.chart__bar-inline {
+  fill: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__swatch--dot[data-series] {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.chart__line[data-series="3"] { stroke: var(--series-3); }
+.chart__line[data-series="7"] { stroke: var(--series-7); }
+.chart__line[data-series="8"] { stroke: var(--series-8); }
+.chart__cursor circle[data-series="2"] { fill: var(--series-2); }
+.chart__cursor circle[data-series="3"] { fill: var(--series-3); }
+.chart__cursor circle[data-series="7"] { fill: var(--series-7); }
+.chart__cursor circle[data-series="8"] { fill: var(--series-8); }
+.chart__swatch[data-series="3"] { background: var(--series-3); }
+.chart__swatch[data-series="7"] { background: var(--series-7); }
+.chart__bar[data-series="4"] { fill: var(--series-4); }
+/* Deliberately no per-series colour on .chart__end-label. The label is
+   text, and text stays in text ink: a light categorical hue is illegible
+   as 11px type on the surface, and the line terminating immediately to
+   its left already carries the identity. */
+
 /* ---------- findings ---------- */
 
 /* Plain-language conclusions sitting next to the chart that supports

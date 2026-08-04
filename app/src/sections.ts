@@ -48,7 +48,11 @@ export const SECTIONS: Section[] = [
     label: "Online",
     session: 7,
     metrics: [5, 6],
-    views: ["vw_ticket_channel_mix", "vw_web_channel_conversion"],
+    views: [
+      "vw_ticket_channel_mix",
+      "vw_web_channel_conversion",
+      "vw_web_channel_conversion_monthly",
+    ],
   },
   {
     id: "recurring",

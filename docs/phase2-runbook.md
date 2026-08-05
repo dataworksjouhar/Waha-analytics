@@ -387,8 +387,17 @@ so instead of drawing the chart.
       (two site plan strings, one equestrian caveat) and added
       `client.site_name` to config, since the site and the operating
       company are different names and only one of them belongs on a map.
-- [ ] You can explain every file without notes
-- [ ] Deployed and reachable at a public URL
+- [ ] You can explain every file without notes. Deliberately left open:
+      this is the one line on the list that nobody else can tick for you,
+      and it is the one an interview actually tests. `lib/chart.ts`,
+      `lib/footfall.ts` and `lib/leasing.ts` carry the real logic.
+- [x] Deployed and reachable at a public URL:
+      https://mohammedjouhar.com/al-waha/ (5 August 2026). Verified after
+      publishing rather than assumed: all 22 data files return 200, the
+      served bundle is byte-identical to the local build, and the bundle
+      contains no occurrence of the client name, which is the
+      config-driven claim holding in production rather than just in the
+      README.
 - [x] README updated as the portfolio front door
 
 ---
